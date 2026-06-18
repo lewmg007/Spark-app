@@ -128,15 +128,19 @@
   .chat-send:active { transform: scale(0.9); }
   
   /* ── Onboarding ── */
-  #onboarding { position: fixed; inset: 0; background: var(--cream); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px 28px; text-align: center; max-width: 430px; margin: 0 auto; }
+  #onboarding { position: fixed; inset: 0; background: var(--cream); z-index: 999; display: flex; align-items: center; justify-content: center; }
+  #onboarding-inner { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; width: 100%; max-width: 390px; padding: 30px 28px; padding-bottom: max(30px, env(safe-area-inset-bottom)); }
   .ob-logo { font-size: 52px; margin-bottom: 8px; }
   .ob-title { font-size: 34px; font-weight: 800; color: var(--ink); letter-spacing: -1px; margin-bottom: 8px; }
   .ob-sub { font-size: 16px; color: var(--stone); line-height: 1.5; margin-bottom: 36px; }
-  .ob-input { width: 100%; padding: 15px 18px; border-radius: var(--r); border: 1.5px solid var(--border); background: var(--white); font-family: var(--font); font-size: 16px; font-weight: 600; color: var(--ink); outline: none; margin-bottom: 12px; }
+  .ob-input { width: 100%; padding: 15px 18px; border-radius: var(--r); border: 1.5px solid var(--border); background: var(--white); font-family: var(--font); font-size: 16px; font-weight: 600; color: var(--ink); outline: none; margin-bottom: 12px; text-align: center; display: block; box-sizing: border-box; }
   .ob-input:focus { border-color: var(--rose); }
-  .ob-step { display: none; width: 100%; }
-  .ob-step.active { display: block; }
-  .ob-hint { font-size: 12px; color: var(--stone); margin-top: 8px; }
+  .ob-input[type="date"] { text-align: center; -webkit-appearance: none; appearance: none; color: var(--ink); }
+  .ob-input[type="date"]::-webkit-date-and-time-value { text-align: center; }
+  .ob-step { display: none; width: 100%; text-align: center; }
+  .ob-step.active { display: flex; flex-direction: column; align-items: center; }
+  .ob-step .btn { width: 100%; }
+  .ob-hint { font-size: 12px; color: var(--stone); margin-top: 8px; text-align: center; width: 100%; }
   
   /* ── Settings / Us screen ── */
   .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--border); }
@@ -160,7 +164,7 @@
   .wiggle { animation: wiggle 0.4s ease; }
   @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.18)} 100%{transform:scale(1)} }
   .pop { animation: pop 0.35s cubic-bezier(.34,1.56,.64,1); }
- 
+
   /* ── API key setup ── */
   #api-setup { display: none; position: fixed; inset: 0; background: rgba(44,31,26,0.6); z-index: 998; align-items: flex-end; justify-content: center; max-width: 430px; margin: 0 auto; }
   #api-setup.show { display: flex; }
@@ -168,7 +172,7 @@
   .api-sheet h3 { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
   .api-sheet p { font-size: 14px; color: var(--stone); margin-bottom: 18px; line-height: 1.5; }
   .api-sheet a { color: var(--rose); font-weight: 600; }
- 
+
   /* ── Empty state ── */
   .empty { text-align: center; padding: 40px 20px; }
   .empty-icon { font-size: 48px; margin-bottom: 12px; }
@@ -177,36 +181,38 @@
 </style>
 </head>
 <body>
- 
+
 <!-- ─── ONBOARDING ─── -->
 <div id="onboarding">
-  <div class="ob-logo">🌱</div>
-  <h1 class="ob-title">Spark</h1>
-  <p class="ob-sub">Grow your relationship, one day at a time.</p>
- 
-  <div class="ob-step active" id="ob-1">
-    <input class="ob-input" id="ob-name" placeholder="Your name" autocomplete="given-name"/>
-    <button class="btn btn-rose" onclick="obNext(1)">Continue →</button>
-  </div>
- 
-  <div class="ob-step" id="ob-2">
-    <input class="ob-input" id="ob-partner" placeholder="Your partner's name"/>
-    <button class="btn btn-rose" onclick="obNext(2)">Continue →</button>
-  </div>
- 
-  <div class="ob-step" id="ob-3">
-    <input class="ob-input" id="ob-date" type="date"/>
-    <p class="ob-hint">Your relationship start date (optional)</p>
-    <button class="btn btn-rose" style="margin-top:12px" onclick="obNext(3)">Plant your first seed 🌱</button>
-  </div>
- 
-  <div id="ob-dots" style="display:flex;gap:7px;margin-top:24px">
-    <span id="dot-0" style="width:22px;height:6px;border-radius:3px;background:var(--rose);transition:all .3s"></span>
-    <span id="dot-1" style="width:6px;height:6px;border-radius:3px;background:var(--blush);transition:all .3s"></span>
-    <span id="dot-2" style="width:6px;height:6px;border-radius:3px;background:var(--blush);transition:all .3s"></span>
+  <div id="onboarding-inner">
+    <div class="ob-logo">🌱</div>
+    <h1 class="ob-title">Spark</h1>
+    <p class="ob-sub">Grow your relationship, one day at a time.</p>
+
+    <div class="ob-step active" id="ob-1">
+      <input class="ob-input" id="ob-name" placeholder="Your name" autocomplete="given-name"/>
+      <button class="btn btn-rose" onclick="obNext(1)">Continue →</button>
+    </div>
+
+    <div class="ob-step" id="ob-2">
+      <input class="ob-input" id="ob-partner" placeholder="Your partner's name"/>
+      <button class="btn btn-rose" onclick="obNext(2)">Continue →</button>
+    </div>
+
+    <div class="ob-step" id="ob-3">
+      <input class="ob-input" id="ob-date" type="date" style="text-align:center"/>
+      <p class="ob-hint" style="text-align:center;width:100%">Your relationship start date (optional)</p>
+      <button class="btn btn-rose" style="margin-top:12px;width:100%" onclick="obNext(3)">Plant your first seed 🌱</button>
+    </div>
+
+    <div id="ob-dots" style="display:flex;gap:7px;margin-top:24px;justify-content:center">
+      <span id="dot-0" style="width:22px;height:6px;border-radius:3px;background:var(--rose);transition:all .3s"></span>
+      <span id="dot-1" style="width:6px;height:6px;border-radius:3px;background:var(--blush);transition:all .3s"></span>
+      <span id="dot-2" style="width:6px;height:6px;border-radius:3px;background:var(--blush);transition:all .3s"></span>
+    </div>
   </div>
 </div>
- 
+
 <!-- ─── API KEY SETUP SHEET ─── -->
 <div id="api-setup">
   <div class="api-sheet">
@@ -217,10 +223,10 @@
     <button class="btn btn-outline" style="margin-top:10px" onclick="closeApiSetup()">Maybe later</button>
   </div>
 </div>
- 
+
 <!-- ─── MAIN APP ─── -->
 <div id="app" style="display:none">
- 
+
   <!-- HOME SCREEN -->
   <div class="screen active" id="screen-home">
     <div class="topbar">
@@ -231,7 +237,7 @@
       <div class="topbar-avatar" id="home-avatar">😊</div>
     </div>
     <div class="scroll-body">
- 
+
       <!-- Plant preview card -->
       <div class="card" style="text-align:center;padding:24px 18px">
         <div id="home-plant-svg" style="width:100px;height:100px;margin:0 auto 12px"></div>
@@ -240,7 +246,7 @@
         <div class="progress-track"><div class="progress-fill" id="home-progress" style="width:0%"></div></div>
         <div style="font-size:11px;color:var(--stone);margin-top:6px;font-weight:600" id="home-progress-label">Day 0 / 30</div>
       </div>
- 
+
       <!-- Today's question -->
       <div class="section-head">Today's question</div>
       <div class="question-card" id="home-question">
@@ -248,7 +254,7 @@
         <div class="question-text" id="home-question-text">Loading your question...</div>
       </div>
       <button class="btn btn-ghost" onclick="newDailyQuestion()" style="margin-bottom:14px">New question 🎲</button>
- 
+
       <!-- Days together -->
       <div class="section-head">You & <span id="home-partner-name-label">your partner</span></div>
       <div class="stats-row">
@@ -261,10 +267,10 @@
           <div class="stat-lbl">Plants grown</div>
         </div>
       </div>
- 
+
     </div>
   </div>
- 
+
   <!-- PLANT SCREEN -->
   <div class="screen" id="screen-plant">
     <div class="topbar">
@@ -283,7 +289,7 @@
       <div id="plant-ok-alert" class="alert alert-success" style="display:none">
         ✅ Plant watered today — you're on a streak!
       </div>
- 
+
       <div class="plant-hero">
         <div class="plant-svg-wrap" id="plant-main-svg"></div>
         <div class="plant-name" id="plant-screen-name">Loading...</div>
@@ -292,7 +298,7 @@
           <div class="progress-fill" id="plant-progress" style="width:0%"></div>
         </div>
       </div>
- 
+
       <div class="stats-row">
         <div class="stat-card">
           <div class="stat-num" id="plant-stat-days">0</div>
@@ -303,27 +309,27 @@
           <div class="stat-lbl">Hrs since water</div>
         </div>
       </div>
- 
+
       <button class="btn btn-sage" id="water-btn" onclick="waterPlant()" style="margin-bottom:12px">
         💧 Water now
       </button>
       <button class="btn btn-outline" onclick="showScreen('garden')" style="margin-bottom:14px">
         🌻 View our garden
       </button>
- 
+
       <div class="card-sm" style="border:none;background:var(--sage-light)">
         <p style="font-size:12px;color:var(--sage-dark);font-weight:600;line-height:1.6">
           🌿 Your plant needs water every 24 hours. Either of you can water it. If 24 hours pass without water, it dies and moves to your garden as a memory. A new seed is planted automatically.
         </p>
       </div>
- 
+
       <div class="section-head" style="margin-top:18px">Next plant</div>
       <div id="plant-next-preview" class="card-sm" style="text-align:center;color:var(--stone);font-size:13px;font-weight:600">
         Complete this plant to unlock the next one 🔒
       </div>
     </div>
   </div>
- 
+
   <!-- GARDEN SCREEN -->
   <div class="screen" id="screen-garden">
     <div class="topbar">
@@ -341,7 +347,7 @@
       <div class="garden-grid" id="garden-grid"></div>
     </div>
   </div>
- 
+
   <!-- GAMES SCREEN -->
   <div class="screen" id="screen-games">
     <div class="topbar">
@@ -361,10 +367,10 @@
         </div>
       </div>
       <button class="btn btn-outline" onclick="loadWyr()" style="margin-bottom:18px">New one 🎲</button>
- 
+
       <div class="section-head">Daily questions</div>
       <div id="questions-list"></div>
- 
+
       <div class="pro-lock">
         <div style="font-size:28px;margin-bottom:8px">🔐</div>
         <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:4px">Unlock all 50+ questions</div>
@@ -373,7 +379,7 @@
       </div>
     </div>
   </div>
- 
+
   <!-- AI COACH SCREEN -->
   <div class="screen" id="screen-coach">
     <div class="topbar" style="padding-bottom:8px">
@@ -399,7 +405,7 @@
       </div>
     </div>
   </div>
- 
+
   <!-- US / PROFILE SCREEN -->
   <div class="screen" id="screen-us">
     <div class="topbar">
@@ -414,13 +420,13 @@
         <div style="font-size:20px;font-weight:800;color:var(--ink)" id="us-names-big">You & Your partner</div>
         <div style="font-size:13px;color:var(--stone);margin-top:4px" id="us-since">Together since —</div>
       </div>
- 
+
       <div class="pro-banner">
         <h3>Spark Pro ✨</h3>
         <p>Unlock rare plants, all games, AI date planner & more. Both of you get access for one price.</p>
         <button class="btn btn-white btn-sm" onclick="showProModal()">Start free trial — £3.99/mo</button>
       </div>
- 
+
       <div class="section-head">Settings</div>
       <div class="card">
         <div class="setting-row">
@@ -440,11 +446,11 @@
           <div class="setting-val">On</div>
         </div>
       </div>
- 
+
       <button class="btn btn-outline" onclick="resetApp()" style="margin-top:8px;color:#991B1B;border-color:#FECACA">Reset everything</button>
     </div>
   </div>
- 
+
   <!-- TAB BAR -->
   <nav id="tabbar">
     <button class="tab-btn active" onclick="showScreen('home')" id="tab-home">
@@ -468,9 +474,9 @@
       <span class="tab-label">Coach</span>
     </button>
   </nav>
- 
+
 </div>
- 
+
 <script>
 // ══════════════════════════════════════════
 //  STATE
@@ -485,7 +491,7 @@ let state = {
   isPro: false,
   chatHistory: []
 };
- 
+
 const PLANTS = [
   { name: 'Sage',      emoji: '🌿', color: '#639922', days: 30 },
   { name: 'Sunflower', emoji: '🌻', color: '#F59E0B', days: 30 },
@@ -496,7 +502,7 @@ const PLANTS = [
   { name: 'Lotus',     emoji: '🪷', color: '#C026D3', days: 30 },
   { name: 'Orchid',    emoji: '🌺', color: '#DC2626', days: 30, pro: true },
 ];
- 
+
 const FREE_QUESTIONS = [
   "What made you smile today?",
   "What's something you've never told me before?",
@@ -509,7 +515,7 @@ const FREE_QUESTIONS = [
   "What's something small I do that means a lot to you?",
   "What are you most excited about for our future?",
 ];
- 
+
 const WYR_QUESTIONS = [
   { a: "Always know what your partner is thinking", b: "Always know what your partner is feeling" },
   { a: "Have a surprise date planned for you", b: "Plan the perfect date yourself" },
@@ -520,7 +526,7 @@ const WYR_QUESTIONS = [
   { a: "Live in the city, close to everything", b: "Live somewhere quiet and beautiful" },
   { a: "Never argue but miss out on some passion", b: "Argue sometimes but feel deeply connected" },
 ];
- 
+
 // ══════════════════════════════════════════
 //  SAVE / LOAD
 // ══════════════════════════════════════════
@@ -531,7 +537,7 @@ function load() {
   const raw = localStorage.getItem('spark_state');
   if (raw) { try { state = { ...state, ...JSON.parse(raw) }; } catch(e) {} }
 }
- 
+
 // ══════════════════════════════════════════
 //  ONBOARDING
 // ══════════════════════════════════════════
@@ -559,7 +565,7 @@ function obNext(step) {
     d.style.background = i === obStep ? 'var(--rose)' : 'var(--blush)';
   });
 }
- 
+
 function startApp() {
   if (!state.currentPlant) plantNewSeed(0);
   save();
@@ -571,7 +577,7 @@ function startApp() {
     if (!state.apiKey) showApiSetup();
   }, 1500);
 }
- 
+
 // ══════════════════════════════════════════
 //  PLANT LOGIC
 // ══════════════════════════════════════════
@@ -590,27 +596,27 @@ function plantNewSeed(idx) {
     isComplete: false,
   };
 }
- 
+
 function getDayCount() {
   if (!state.currentPlant) return 0;
   const start = new Date(state.currentPlant.startDate);
   const now = new Date();
   return Math.floor((now - start) / (1000 * 60 * 60 * 24));
 }
- 
+
 function getHoursSinceWater() {
   if (!state.currentPlant || !state.currentPlant.lastWatered) return 999;
   const last = new Date(state.currentPlant.lastWatered);
   const now = new Date();
   return (now - last) / (1000 * 60 * 60);
 }
- 
+
 function checkPlantStatus() {
   if (!state.currentPlant) return;
   const hours = getHoursSinceWater();
   const days = getDayCount();
   state.currentPlant.dayCount = days;
- 
+
   if (hours > 24 && state.currentPlant.isAlive) {
     // Plant died
     state.currentPlant.isAlive = false;
@@ -626,7 +632,7 @@ function checkPlantStatus() {
     showCelebration();
   }
 }
- 
+
 function waterPlant() {
   if (!state.currentPlant || !state.currentPlant.isAlive) return;
   haptic();
@@ -645,11 +651,11 @@ function waterPlant() {
   refreshPlantScreen();
   refreshHome();
 }
- 
+
 function haptic() {
   if (navigator.vibrate) navigator.vibrate([10, 30, 10]);
 }
- 
+
 function showCelebration() {
   // Simple toast
   const t = document.createElement('div');
@@ -658,7 +664,7 @@ function showCelebration() {
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 3500);
 }
- 
+
 // ══════════════════════════════════════════
 //  PLANT SVG GENERATOR
 // ══════════════════════════════════════════
@@ -673,7 +679,7 @@ function plantSVG(plant, size = 100) {
   const s = size;
   const cx = s / 2;
   const base = s - 10;
- 
+
   return `<svg viewBox="0 0 ${s} ${s}" xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}">
     ${alive ? '' : '<filter id="gray"><feColorMatrix type="saturate" values="0"/></filter>'}
     <g ${alive ? '' : 'filter="url(#gray)"'}>
@@ -696,7 +702,7 @@ function plantSVG(plant, size = 100) {
     </g>
   </svg>`;
 }
- 
+
 // ══════════════════════════════════════════
 //  SCREEN REFRESH
 // ══════════════════════════════════════════
@@ -708,19 +714,19 @@ function refreshAll() {
   refreshGames();
   refreshUs();
 }
- 
+
 function refreshHome() {
   const p = state.currentPlant;
   document.getElementById('home-avatar').textContent = state.myName ? state.myName[0].toUpperCase() : '😊';
   document.getElementById('home-partner-name-label').textContent = state.partnerName || 'your partner';
- 
+
   // Days together
   if (state.startDate) {
     const d = Math.floor((new Date() - new Date(state.startDate)) / 86400000);
     document.getElementById('stat-days-together').textContent = d;
   }
   document.getElementById('stat-plants-grown').textContent = state.garden.filter(g => g.grew).length;
- 
+
   if (p) {
     document.getElementById('home-plant-svg').innerHTML = plantSVG(p, 100);
     document.getElementById('home-plant-name').textContent = p.name;
@@ -733,11 +739,11 @@ function refreshHome() {
     else if (hrs < 18) document.getElementById('home-plant-status').textContent = '🌿 Growing well';
     else document.getElementById('home-plant-status').textContent = '⚠️ Needs water soon!';
   }
- 
+
   // Daily question
   loadDailyQuestion();
 }
- 
+
 function refreshPlantScreen() {
   const p = state.currentPlant;
   if (!p) return;
@@ -749,12 +755,12 @@ function refreshPlantScreen() {
   document.getElementById('plant-stat-days').textContent = p.dayCount || 0;
   const hrs = getHoursSinceWater();
   document.getElementById('plant-stat-hours').textContent = hrs < 999 ? Math.round(hrs) + 'h' : '—';
- 
+
   // Alerts
   document.getElementById('plant-dead-alert').style.display = !p.isAlive ? 'flex' : 'none';
   document.getElementById('plant-warn-alert').style.display = (p.isAlive && hrs > 18) ? 'flex' : 'none';
   document.getElementById('plant-ok-alert').style.display = (p.isAlive && hrs <= 6) ? 'flex' : 'none';
- 
+
   // Next plant preview
   const nextIdx = state.garden.length + 1;
   const next = PLANTS[nextIdx % PLANTS.length];
@@ -762,13 +768,13 @@ function refreshPlantScreen() {
     document.getElementById('plant-next-preview').textContent = `Next: ${next.emoji} ${next.name}`;
   }
 }
- 
+
 function refreshGarden() {
   const grid = document.getElementById('garden-grid');
   const empty = document.getElementById('garden-empty');
   const completedGarden = state.garden;
   document.getElementById('garden-subtitle').textContent = `${completedGarden.length} plant${completedGarden.length !== 1 ? 's' : ''} in your garden`;
- 
+
   if (completedGarden.length === 0) {
     empty.style.display = 'block';
     grid.innerHTML = '';
@@ -786,7 +792,7 @@ function refreshGarden() {
     </div>`;
   }).join('');
 }
- 
+
 function refreshGames() {
   const list = document.getElementById('questions-list');
   list.innerHTML = FREE_QUESTIONS.slice(0, 5).map((q,i) => `
@@ -797,7 +803,7 @@ function refreshGames() {
   `).join('');
   loadWyr();
 }
- 
+
 function refreshUs() {
   document.getElementById('us-names-big').textContent = `${state.myName || 'You'} & ${state.partnerName || 'Partner'}`;
   document.getElementById('us-couple-names').textContent = `${state.myName || ''} & ${state.partnerName || ''}`;
@@ -806,7 +812,7 @@ function refreshUs() {
   document.getElementById('set-partnername').textContent = state.partnerName || '—';
   document.getElementById('set-apikey').textContent = state.apiKey ? '✅ Connected' : 'Tap to set';
 }
- 
+
 // ══════════════════════════════════════════
 //  QUESTIONS
 // ══════════════════════════════════════════
@@ -825,7 +831,7 @@ function newDailyQuestion() {
   el.classList.add('fade-up');
   el.textContent = next;
 }
- 
+
 function loadWyr() {
   haptic();
   const q = WYR_QUESTIONS[Math.floor(Math.random() * WYR_QUESTIONS.length)];
@@ -841,7 +847,7 @@ function pickWyr(choice) {
   document.getElementById('wyr-text').textContent = `You chose: "${q}" — ask your partner what they'd choose!`;
   setTimeout(loadWyr, 3000);
 }
- 
+
 // ══════════════════════════════════════════
 //  NAVIGATION
 // ══════════════════════════════════════════
@@ -857,7 +863,7 @@ function showScreen(name) {
   if (name === 'games') refreshGames();
   if (name === 'us') refreshUs();
 }
- 
+
 // ══════════════════════════════════════════
 //  CLAUDE AI CHAT
 // ══════════════════════════════════════════
@@ -866,18 +872,18 @@ async function sendChat() {
   const msg = input.value.trim();
   if (!msg) return;
   if (!state.apiKey) { showApiSetup(); return; }
- 
+
   haptic();
   input.value = '';
   input.style.height = 'auto';
- 
+
   // Add user message
   appendMsg(msg, 'user');
   state.chatHistory.push({ role: 'user', content: msg });
- 
+
   // Typing indicator
   const typing = appendTyping();
- 
+
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -894,10 +900,10 @@ async function sendChat() {
         messages: state.chatHistory
       })
     });
- 
+
     const data = await response.json();
     typing.remove();
- 
+
     if (data.content && data.content[0]) {
       const reply = data.content[0].text;
       state.chatHistory.push({ role: 'assistant', content: reply });
@@ -911,7 +917,7 @@ async function sendChat() {
     appendMsg('Could not connect. Check your API key is correct in the Us tab. 💕', 'ai');
   }
 }
- 
+
 function appendMsg(text, role) {
   const wrap = document.getElementById('chat-messages');
   const div = document.createElement('div');
@@ -930,7 +936,7 @@ function appendTyping() {
   wrap.scrollTop = wrap.scrollHeight;
   return div;
 }
- 
+
 // ══════════════════════════════════════════
 //  API KEY
 // ══════════════════════════════════════════
@@ -952,14 +958,14 @@ function saveApiKey() {
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 2500);
 }
- 
+
 // ══════════════════════════════════════════
 //  PRO MODAL (placeholder)
 // ══════════════════════════════════════════
 function showProModal() {
   alert('Spark Pro coming soon! You\'ll be able to unlock rare plants, all 50+ games, and more for £3.99/month. Add Stripe here when ready.');
 }
- 
+
 // ══════════════════════════════════════════
 //  RESET
 // ══════════════════════════════════════════
@@ -968,7 +974,7 @@ function resetApp() {
   localStorage.removeItem('spark_state');
   location.reload();
 }
- 
+
 // ══════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════
@@ -981,7 +987,7 @@ if (state.myName) {
   // Set default date for onboarding
   document.getElementById('ob-date').value = new Date().toISOString().split('T')[0];
 }
- 
+
 // Auto-refresh plant status every minute
 setInterval(() => {
   if (state.myName) { checkPlantStatus(); refreshPlantScreen(); }
@@ -989,4 +995,3 @@ setInterval(() => {
 </script>
 </body>
 </html>
- 
