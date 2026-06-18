@@ -9,25 +9,30 @@
 <title>Spark</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <style>
   :root {
-    --cream: #FDF8F4;
-    --blush: #F2D4D7;
-    --rose: #D4537E;
-    --rose-dark: #993556;
-    --sage: #639922;
-    --sage-light: #EAF3DE;
-    --sage-dark: #27500A;
-    --petal: #FBEAF0;
-    --stone: #7A7068;
-    --ink: #2C1F1A;
-    --white: #FFFFFF;
-    --border: rgba(44,31,26,0.1);
-    --shadow: 0 2px 16px rgba(44,31,26,0.08);
-    --r: 16px;
-    --r-sm: 10px;
-    --font: 'Nunito', sans-serif;
+    --cream: #FAF5EE;
+    --cream-deep: #F3EBDD;
+    --blush: #E9C4BE;
+    --rose: #C4566B;
+    --rose-dark: #8A3344;
+    --rose-glow: rgba(196,86,107,0.18);
+    --sage: #6B7A3F;
+    --sage-light: #E8EDD8;
+    --sage-dark: #3D4621;
+    --gold: #C99A4A;
+    --petal: #F6E8DE;
+    --stone: #8A7E70;
+    --ink: #2A211B;
+    --white: #FFFEFB;
+    --border: rgba(42,33,27,0.09);
+    --shadow: 0 4px 24px rgba(42,33,27,0.07);
+    --shadow-lift: 0 8px 32px rgba(42,33,27,0.12);
+    --r: 18px;
+    --r-sm: 12px;
+    --font: 'Plus Jakarta Sans', sans-serif;
+    --font-display: 'Fraunces', serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; background: var(--cream); font-family: var(--font); color: var(--ink); overflow: hidden; }
@@ -42,47 +47,51 @@
   .scroll-body::-webkit-scrollbar { display: none; }
   
   /* ── Top bar ── */
-  .topbar { padding: 52px 20px 12px; display: flex; align-items: center; justify-content: space-between; background: var(--cream); }
-  .topbar-title { font-size: 22px; font-weight: 800; color: var(--ink); letter-spacing: -0.5px; }
-  .topbar-sub { font-size: 13px; color: var(--stone); margin-top: 1px; }
-  .topbar-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--petal); display: flex; align-items: center; justify-content: center; font-size: 18px; border: 2px solid var(--blush); }
+  .topbar { padding: 56px 20px 14px; display: flex; align-items: center; justify-content: space-between; background: var(--cream); }
+  .topbar-title { font-family: var(--font-display); font-size: 26px; font-weight: 600; color: var(--ink); letter-spacing: -0.3px; }
+  .topbar-sub { font-size: 13px; color: var(--stone); margin-top: 2px; font-weight: 500; }
+  .topbar-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--petal); display: flex; align-items: center; justify-content: center; font-size: 18px; border: 2px solid var(--white); box-shadow: var(--shadow); }
   
   /* ── Tab bar ── */
   #tabbar { position: absolute; bottom: 0; left: 0; right: 0; max-width: 430px; margin: 0 auto; background: rgba(253,248,244,0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid var(--border); padding: 8px 0 max(12px, env(safe-area-inset-bottom)); display: flex; z-index: 100; }
-  .tab-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 0; background: none; border: none; cursor: pointer; transition: transform 0.15s; }
-  .tab-btn:active { transform: scale(0.9); }
-  .tab-icon { font-size: 22px; line-height: 1; transition: transform 0.2s cubic-bezier(.34,1.56,.64,1); }
-  .tab-label { font-size: 10px; font-weight: 600; color: var(--stone); letter-spacing: 0.02em; font-family: var(--font); }
-  .tab-btn.active .tab-icon { transform: scale(1.15); }
-  .tab-btn.active .tab-label { color: var(--rose); }
+  .tab-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 0; background: none; border: none; cursor: pointer; transition: transform 0.15s; position: relative; }
+  .tab-btn:active { transform: scale(0.88); }
+  .tab-icon { font-size: 21px; line-height: 1; transition: transform 0.35s cubic-bezier(.34,1.56,.64,1); }
+  .tab-label { font-size: 10px; font-weight: 600; color: var(--stone); letter-spacing: 0.02em; font-family: var(--font); transition: color 0.2s; }
+  .tab-btn.active .tab-icon { transform: scale(1.18) translateY(-1px); }
+  .tab-btn.active .tab-label { color: var(--rose-dark); font-weight: 700; }
+  .tab-btn.active::before { content:''; position:absolute; top:-2px; width:4px; height:4px; border-radius:50%; background:var(--rose); left:50%; transform:translateX(-50%); }
   
   /* ── Cards ── */
-  .card { background: var(--white); border-radius: var(--r); border: 1px solid var(--border); padding: 18px; margin-bottom: 14px; box-shadow: var(--shadow); }
+  .card { background: var(--white); border-radius: var(--r); border: 1px solid var(--border); padding: 20px; margin-bottom: 14px; box-shadow: var(--shadow); }
   .card-sm { background: var(--white); border-radius: var(--r-sm); border: 1px solid var(--border); padding: 14px; margin-bottom: 10px; }
   
   /* ── Buttons ── */
-  .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 16px; border-radius: var(--r); border: none; font-family: var(--font); font-size: 15px; font-weight: 700; cursor: pointer; transition: transform 0.12s, box-shadow 0.12s; letter-spacing: 0.01em; }
-  .btn:active { transform: scale(0.97); }
-  .btn-rose { background: var(--rose); color: white; box-shadow: 0 4px 14px rgba(212,83,126,0.35); }
-  .btn-rose:active { box-shadow: 0 2px 8px rgba(212,83,126,0.25); }
-  .btn-sage { background: var(--sage); color: white; box-shadow: 0 4px 14px rgba(99,153,34,0.35); }
-  .btn-sage:active { box-shadow: 0 2px 8px rgba(99,153,34,0.25); }
+  .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 16px; border-radius: var(--r); border: none; font-family: var(--font); font-size: 15px; font-weight: 700; cursor: pointer; transition: transform 0.12s cubic-bezier(.34,1.56,.64,1), box-shadow 0.12s; letter-spacing: 0.01em; }
+  .btn:active { transform: scale(0.96); }
+  .btn-rose { background: linear-gradient(135deg, var(--rose) 0%, var(--rose-dark) 100%); color: white; box-shadow: 0 6px 16px var(--rose-glow); }
+  .btn-rose:active { box-shadow: 0 2px 8px var(--rose-glow); }
+  .btn-sage { background: linear-gradient(135deg, var(--sage) 0%, var(--sage-dark) 100%); color: white; box-shadow: 0 6px 16px rgba(107,122,63,0.3); }
+  .btn-sage:active { box-shadow: 0 2px 8px rgba(107,122,63,0.2); }
   .btn-ghost { background: var(--petal); color: var(--rose-dark); }
   .btn-outline { background: transparent; color: var(--ink); border: 1.5px solid var(--border); }
-  .btn-sm { padding: 10px 16px; font-size: 13px; width: auto; border-radius: var(--r-sm); }
+  .btn-sm { padding: 11px 18px; font-size: 13px; width: auto; border-radius: var(--r-sm); }
   
   /* ── Plant ── */
   .plant-hero { display: flex; flex-direction: column; align-items: center; padding: 28px 20px 20px; }
-  .plant-svg-wrap { width: 160px; height: 160px; position: relative; margin-bottom: 16px; }
-  .plant-name { font-size: 26px; font-weight: 800; color: var(--ink); letter-spacing: -0.5px; }
-  .plant-day { font-size: 14px; color: var(--stone); margin-top: 4px; }
-  .progress-track { height: 8px; background: var(--blush); border-radius: 4px; overflow: hidden; margin: 10px 0; }
-  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--sage), #8BC34A); border-radius: 4px; transition: width 0.6s cubic-bezier(.34,1.56,.64,1); }
+  .plant-svg-wrap { width: 170px; height: 170px; position: relative; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; }
+  .plant-svg-wrap::before { content:''; position:absolute; width:120px; height:120px; border-radius:50%; background: radial-gradient(circle, var(--sage-light) 0%, transparent 70%); opacity: 0.8; z-index: 0; }
+  .plant-svg-wrap svg { position: relative; z-index: 1; animation: sway 4.5s ease-in-out infinite; transform-origin: bottom center; }
+  @keyframes sway { 0%,100% { transform: rotate(-1.2deg); } 50% { transform: rotate(1.2deg); } }
+  .plant-name { font-family: var(--font-display); font-size: 28px; font-weight: 600; color: var(--ink); letter-spacing: -0.3px; }
+  .plant-day { font-size: 14px; color: var(--stone); margin-top: 4px; font-weight: 500; }
+  .progress-track { height: 7px; background: var(--blush); border-radius: 4px; overflow: hidden; margin: 12px 0; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--sage), var(--gold)); border-radius: 4px; transition: width 0.8s cubic-bezier(.22,1,.36,1); }
   
   /* ── Stats row ── */
   .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
   .stat-card { background: var(--white); border-radius: var(--r-sm); border: 1px solid var(--border); padding: 14px; text-align: center; }
-  .stat-num { font-size: 24px; font-weight: 800; color: var(--ink); }
+  .stat-num { font-family: var(--font-display); font-size: 26px; font-weight: 600; color: var(--ink); }
   .stat-lbl { font-size: 11px; color: var(--stone); margin-top: 2px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
   
   /* ── Danger / warning ── */
@@ -104,7 +113,7 @@
   
   /* ── Games / questions ── */
   .question-card { background: var(--petal); border-radius: var(--r); padding: 22px; margin-bottom: 12px; border: 1px solid var(--blush); }
-  .question-text { font-size: 18px; font-weight: 700; color: var(--ink); line-height: 1.4; }
+  .question-text { font-family: var(--font-display); font-size: 20px; font-weight: 500; color: var(--ink); line-height: 1.45; font-style: italic; }
   .question-cat { font-size: 11px; font-weight: 700; color: var(--rose); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
   .pro-lock { background: var(--white); border-radius: var(--r); padding: 20px; border: 2px dashed var(--blush); text-align: center; margin-bottom: 12px; }
   
@@ -131,7 +140,7 @@
   #onboarding { position: fixed; inset: 0; background: var(--cream); z-index: 999; display: flex; align-items: center; justify-content: center; }
   #onboarding-inner { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; width: 100%; max-width: 390px; padding: 30px 28px; padding-bottom: max(30px, env(safe-area-inset-bottom)); }
   .ob-logo { font-size: 52px; margin-bottom: 8px; }
-  .ob-title { font-size: 34px; font-weight: 800; color: var(--ink); letter-spacing: -1px; margin-bottom: 8px; }
+  .ob-title { font-family: var(--font-display); font-size: 40px; font-weight: 600; color: var(--ink); letter-spacing: -1px; margin-bottom: 8px; }
   .ob-sub { font-size: 16px; color: var(--stone); line-height: 1.5; margin-bottom: 36px; }
   .ob-input { width: 100%; padding: 15px 18px; border-radius: var(--r); border: 1.5px solid var(--border); background: var(--white); font-family: var(--font); font-size: 16px; font-weight: 600; color: var(--ink); outline: none; margin-bottom: 12px; text-align: center; display: block; box-sizing: border-box; }
   .ob-input:focus { border-color: var(--rose); }
@@ -163,6 +172,8 @@
   @keyframes wiggle { 0%,100%{transform:rotate(0deg)} 25%{transform:rotate(-8deg)} 75%{transform:rotate(8deg)} }
   .wiggle { animation: wiggle 0.4s ease; }
   @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.18)} 100%{transform:scale(1)} }
+  @keyframes ripple { 0% { box-shadow: 0 0 0 0 rgba(107,122,63,0.5); } 100% { box-shadow: 0 0 0 26px rgba(107,122,63,0); } }
+  .water-ripple { animation: ripple 0.7s ease-out; }
   .pop { animation: pop 0.35s cubic-bezier(.34,1.56,.64,1); }
 
   /* ── API key setup ── */
@@ -640,14 +651,12 @@ function waterPlant() {
   state.currentPlant.wateredToday = true;
   save();
   const btn = document.getElementById('water-btn');
-  btn.classList.add('pop');
-  btn.textContent = '✅ Watered!';
-  btn.style.background = 'var(--sage)';
+  btn.classList.add('pop', 'water-ripple');
+  btn.innerHTML = '✅ Watered today';
   setTimeout(() => {
-    btn.classList.remove('pop');
+    btn.classList.remove('pop', 'water-ripple');
     btn.innerHTML = '💧 Water now';
-    btn.style.background = '';
-  }, 2000);
+  }, 2200);
   refreshPlantScreen();
   refreshHome();
 }
@@ -995,3 +1004,4 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
