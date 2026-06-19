@@ -10,6 +10,26 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc, onSnapshot, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAXOvpj1ogIeldTKn4XFE2ljm045AkANLM",
+  authDomain: "spark-app-a98fa.firebaseapp.com",
+  projectId: "spark-app-a98fa",
+  storageBucket: "spark-app-a98fa.firebasestorage.app",
+  messagingSenderId: "841144242877",
+  appId: "1:841144242877:web:13dd932f7a092f9d161dd4"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
+window._db = db;
+window._fbFns = { doc, setDoc, getDoc, onSnapshot, updateDoc, serverTimestamp };
+window._firebaseReady = true;
+window.dispatchEvent(new Event('firebaseReady'));
+</script>
 <style>
   :root {
     --cream: #FAF5EE;
@@ -102,9 +122,10 @@
   
   /* ── Garden grid ── */
   .garden-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .garden-cell { background: var(--white); border-radius: var(--r); border: 1px solid var(--border); padding: 16px; text-align: center; box-shadow: var(--shadow); }
-  .garden-cell.dead { opacity: 0.55; }
-  .garden-plant-svg { width: 64px; height: 64px; margin: 0 auto 8px; }
+  .garden-cell { background: var(--white); border-radius: var(--r); border: 1px solid var(--border); padding: 18px 14px; text-align: center; box-shadow: var(--shadow); transition: transform 0.15s; }
+  .garden-cell:active { transform: scale(0.96); }
+  .garden-cell.dead { opacity: 0.6; }
+  .garden-plant-svg { width: 84px; height: 84px; margin: 0 auto 10px; }
   .garden-plant-name { font-size: 13px; font-weight: 700; color: var(--ink); }
   .garden-plant-date { font-size: 11px; color: var(--stone); margin-top: 2px; }
   .garden-plant-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; margin-top: 6px; display: inline-block; }
@@ -116,6 +137,19 @@
   .question-text { font-family: var(--font-display); font-size: 20px; font-weight: 500; color: var(--ink); line-height: 1.45; font-style: italic; }
   .question-cat { font-size: 11px; font-weight: 700; color: var(--rose); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
   .pro-lock { background: var(--white); border-radius: var(--r); padding: 20px; border: 2px dashed var(--blush); text-align: center; margin-bottom: 12px; }
+
+  /* ── Game hub ── */
+  .game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .game-tile { background: var(--white); border: 1px solid var(--border); border-radius: var(--r); padding: 18px 14px; display: flex; flex-direction: column; align-items: center; gap: 6px; box-shadow: var(--shadow); cursor: pointer; transition: transform 0.15s; font-family: var(--font); }
+  .game-tile:active { transform: scale(0.95); }
+  .game-tile-icon { font-size: 30px; }
+  .game-tile-name { font-size: 13px; font-weight: 700; color: var(--ink); text-align: center; line-height: 1.3; }
+  .game-tile-count { font-size: 11px; color: var(--stone); font-weight: 600; }
+  .game-tile.locked { background: var(--petal); position: relative; }
+  .game-tile.locked .game-tile-count { color: var(--rose-dark); }
+  .game-tile.locked::after { content: '✦'; position: absolute; top: 10px; right: 12px; font-size: 12px; color: var(--rose); }
+  .game-back { background: none; border: none; color: var(--stone); font-family: var(--font); font-size: 13px; font-weight: 700; cursor: pointer; padding: 8px 0; margin-bottom: 6px; }
+  .game-progress-row { text-align: center; font-size: 12px; color: var(--stone); font-weight: 600; margin-top: 4px; }
   
   /* ── AI Chat ── */
   .chat-wrap { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
@@ -174,6 +208,28 @@
   @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.18)} 100%{transform:scale(1)} }
   @keyframes ripple { 0% { box-shadow: 0 0 0 0 rgba(107,122,63,0.5); } 100% { box-shadow: 0 0 0 26px rgba(107,122,63,0); } }
   .water-ripple { animation: ripple 0.7s ease-out; }
+  @keyframes growShake {
+    0% { transform: scale(1) rotate(-1.2deg); }
+    15% { transform: scale(1.08) rotate(4deg); }
+    30% { transform: scale(0.97) rotate(-5deg); }
+    45% { transform: scale(1.06) rotate(3deg); }
+    60% { transform: scale(0.99) rotate(-2.5deg); }
+    75% { transform: scale(1.03) rotate(1.5deg); }
+    100% { transform: scale(1) rotate(-1.2deg); }
+  }
+  .plant-grow-shake { animation: growShake 0.9s cubic-bezier(.36,.07,.19,.97) !important; }
+  @keyframes dropFall {
+    0% { transform: translateY(-30px) scale(0.5); opacity: 0; }
+    20% { opacity: 1; }
+    100% { transform: translateY(60px) scale(1); opacity: 0; }
+  }
+  .water-drop { position: absolute; font-size: 18px; animation: dropFall 0.9s ease-in forwards; pointer-events: none; z-index: 5; }
+  @keyframes sparklePop {
+    0% { transform: scale(0) rotate(0deg); opacity: 0; }
+    50% { transform: scale(1.3) rotate(180deg); opacity: 1; }
+    100% { transform: scale(0.8) rotate(360deg); opacity: 0; }
+  }
+  .grow-sparkle { position: absolute; font-size: 16px; animation: sparklePop 0.8s ease-out forwards; pointer-events: none; z-index: 5; }
   .pop { animation: pop 0.35s cubic-bezier(.34,1.56,.64,1); }
 
   /* ── API key setup ── */
@@ -183,6 +239,19 @@
   .api-sheet h3 { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
   .api-sheet p { font-size: 14px; color: var(--stone); margin-bottom: 18px; line-height: 1.5; }
   .api-sheet a { color: var(--rose); font-weight: 600; }
+
+  /* ── Partner sync sheet ── */
+  #partner-setup { display: none; position: fixed; inset: 0; background: rgba(44,31,26,0.6); z-index: 998; align-items: flex-end; justify-content: center; max-width: 430px; margin: 0 auto; }
+  #partner-setup.show { display: flex; }
+  .partner-tabs { display: flex; margin-bottom: 18px; border-bottom: 1.5px solid var(--border); }
+  .partner-tab { flex: 1; padding: 10px; text-align: center; font-size: 13px; font-weight: 700; color: var(--stone); border: none; background: none; font-family: var(--font); cursor: pointer; border-bottom: 2.5px solid transparent; margin-bottom: -1.5px; }
+  .partner-tab.active { color: var(--rose); border-bottom-color: var(--rose); }
+  .partner-panel { display: none; }
+  .partner-panel.active { display: block; }
+  .invite-code-display { font-family: var(--font-display); font-size: 38px; font-weight: 600; color: var(--ink); letter-spacing: 6px; text-align: center; background: var(--cream-deep); border-radius: var(--r); padding: 18px; margin: 14px 0; border: 1.5px dashed var(--blush); }
+  .partner-status { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: var(--r-sm); background: var(--sage-light); font-size: 13px; font-weight: 600; color: var(--sage-dark); margin-top: 10px; }
+  .pulse { width: 10px; height: 10px; border-radius: 50%; background: var(--sage); animation: pulseDot 1.5s ease-in-out infinite; }
+  @keyframes pulseDot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
 
   /* ── Empty state ── */
   .empty { text-align: center; padding: 40px 20px; }
@@ -235,7 +304,44 @@
   </div>
 </div>
 
+<!-- ─── PARTNER SETUP SHEET ─── -->
+<div id="partner-setup">
+  <div class="api-sheet">
+    <h3>Connect your partner 💑</h3>
+
+    <div class="partner-tabs">
+      <button class="partner-tab active" onclick="switchPartnerTab('create')">Create invite</button>
+      <button class="partner-tab" onclick="switchPartnerTab('join')">Join partner</button>
+    </div>
+
+    <!-- CREATE tab -->
+    <div class="partner-panel active" id="panel-create">
+      <p style="font-size:13px;color:var(--stone);margin-bottom:0">Share this code with your partner so they can join your garden.</p>
+      <div class="invite-code-display" id="invite-code-display">——</div>
+      <button class="btn btn-ghost" onclick="copyInviteCode()" style="margin-bottom:12px">📋 Copy code</button>
+      <div class="partner-status" id="partner-waiting">
+        <div class="pulse"></div>
+        Waiting for your partner to join...
+      </div>
+      <div class="partner-status" id="partner-joined" style="display:none;background:var(--sage-light)">
+        ✅ Partner connected! You're growing together.
+      </div>
+    </div>
+
+    <!-- JOIN tab -->
+    <div class="partner-panel" id="panel-join">
+      <p style="font-size:13px;color:var(--stone);margin-bottom:12px">Enter the 6-letter code your partner shared with you.</p>
+      <input class="ob-input" id="join-code-input" placeholder="e.g. SPARK42" maxlength="8" style="text-align:center;letter-spacing:4px;font-size:20px;text-transform:uppercase"/>
+      <button class="btn btn-rose" onclick="joinWithCode()" style="margin-bottom:10px">Join their garden 🌱</button>
+      <div id="join-error" style="font-size:12px;color:#991B1B;text-align:center;display:none">Code not found — check with your partner.</div>
+    </div>
+
+    <button class="btn btn-outline" onclick="closePartnerSetup()" style="margin-top:10px">Maybe later</button>
+  </div>
+</div>
+
 <!-- ─── MAIN APP ─── -->
+
 <div id="app" style="display:none">
 
   <!-- HOME SCREEN -->
@@ -330,7 +436,7 @@
 
       <div class="card-sm" style="border:none;background:var(--sage-light)">
         <p style="font-size:12px;color:var(--sage-dark);font-weight:600;line-height:1.6">
-          🌿 Your plant needs water every 24 hours. Either of you can water it. If 24 hours pass without water, it dies and moves to your garden as a memory. A new seed is planted automatically.
+          🌿 Your plant needs water every 24 hours. Either of you can water it. After 3 waters, it needs 6 hours to rest before it can be watered again. If 24 hours pass without water, it dies and moves to your garden as a memory. A new seed is planted automatically.
         </p>
       </div>
 
@@ -367,29 +473,65 @@
         <div class="topbar-sub">Learn each other better</div>
       </div>
     </div>
-    <div class="scroll-body">
-      <div class="section-head">Would you rather</div>
-      <div class="card" id="wyr-card">
-        <div class="question-cat">Would you rather</div>
-        <div class="question-text" id="wyr-text">Loading...</div>
-        <div style="display:flex;gap:10px;margin-top:16px">
-          <button class="btn btn-ghost btn-sm" onclick="pickWyr('A')" id="wyr-a">Option A</button>
-          <button class="btn btn-ghost btn-sm" onclick="pickWyr('B')" id="wyr-b">Option B</button>
-        </div>
-      </div>
-      <button class="btn btn-outline" onclick="loadWyr()" style="margin-bottom:18px">New one 🎲</button>
+    <div class="scroll-body" id="games-hub">
 
-      <div class="section-head">Daily questions</div>
-      <div id="questions-list"></div>
+      <!-- GAME PICKER GRID -->
+      <div class="game-grid" id="game-picker">
+        <button class="game-tile" onclick="openGame('wyr')">
+          <span class="game-tile-icon">🤔</span>
+          <span class="game-tile-name">Would You Rather</span>
+          <span class="game-tile-count" id="count-wyr">— prompts</span>
+        </button>
+        <button class="game-tile" onclick="openGame('daily')">
+          <span class="game-tile-icon">💬</span>
+          <span class="game-tile-name">Daily Questions</span>
+          <span class="game-tile-count" id="count-daily">— prompts</span>
+        </button>
+        <button class="game-tile" onclick="openGame('thisthat')">
+          <span class="game-tile-icon">⚡</span>
+          <span class="game-tile-name">This or That</span>
+          <span class="game-tile-count" id="count-thisthat">— prompts</span>
+        </button>
+        <button class="game-tile locked" onclick="openGame('dare')">
+          <span class="game-tile-icon">🎯</span>
+          <span class="game-tile-name">Truth or Dare</span>
+          <span class="game-tile-count">Pro</span>
+        </button>
+        <button class="game-tile locked" onclick="openGame('memory')">
+          <span class="game-tile-icon">🧠</span>
+          <span class="game-tile-name">Memory Quiz</span>
+          <span class="game-tile-count">Pro</span>
+        </button>
+        <button class="game-tile locked" onclick="openGame('deep')">
+          <span class="game-tile-icon">🕯️</span>
+          <span class="game-tile-name">36 Questions</span>
+          <span class="game-tile-count">Pro</span>
+        </button>
+      </div>
 
       <div class="pro-lock">
         <div style="font-size:28px;margin-bottom:8px">🔐</div>
-        <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:4px">Unlock all 50+ questions</div>
-        <div style="font-size:13px;color:var(--stone);margin-bottom:14px">Love language quiz, 36 questions to fall in love, couples trivia & more</div>
+        <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:4px">Unlock 3 more games</div>
+        <div style="font-size:13px;color:var(--stone);margin-bottom:14px">Truth or Dare, Memory Quiz, and the famous 36 Questions to Fall in Love — plus every game gets extra Pro-only prompts</div>
         <button class="btn btn-rose btn-sm" onclick="showProModal()">Upgrade to Spark Pro</button>
       </div>
     </div>
+
+    <!-- ACTIVE GAME VIEW (hidden until a game is opened) -->
+    <div class="scroll-body" id="game-active" style="display:none">
+      <button class="game-back" onclick="closeGame()">← All games</button>
+      <div class="section-head" id="game-active-title">Game</div>
+
+      <div class="card" id="game-card">
+        <div class="question-cat" id="game-cat">Category</div>
+        <div class="question-text" id="game-text">Loading...</div>
+        <div id="game-choices" style="display:none;gap:10px;margin-top:16px"></div>
+      </div>
+      <button class="btn btn-outline" onclick="nextGamePrompt()" style="margin-bottom:10px" id="game-next-btn">New one 🎲</button>
+      <div class="game-progress-row" id="game-progress-row"></div>
+    </div>
   </div>
+
 
   <!-- AI COACH SCREEN -->
   <div class="screen" id="screen-coach">
@@ -449,6 +591,10 @@
           <div class="setting-val" id="set-partnername">—</div>
         </div>
         <div class="setting-row">
+          <div class="setting-label">Partner sync</div>
+          <div class="setting-val" id="set-partner-status" style="cursor:pointer;color:var(--rose)" onclick="showPartnerSetup()">Tap to connect</div>
+        </div>
+        <div class="setting-row">
           <div class="setting-label">Claude AI key</div>
           <div class="setting-val" id="set-apikey" style="cursor:pointer;color:var(--rose)" onclick="showApiSetup()">Tap to set</div>
         </div>
@@ -458,7 +604,8 @@
         </div>
       </div>
 
-      <button class="btn btn-outline" onclick="resetApp()" style="margin-top:8px;color:#991B1B;border-color:#FECACA">Reset everything</button>
+      <button class="btn btn-rose" onclick="showPartnerSetup()" style="margin-bottom:10px">💑 Connect your partner</button>
+      <button class="btn btn-outline" onclick="resetApp()" style="margin-top:0px;color:#991B1B;border-color:#FECACA">Reset everything</button>
     </div>
   </div>
 
@@ -504,16 +651,19 @@ let state = {
 };
 
 const PLANTS = [
-  { name: 'Sage',      emoji: '🌿', color: '#639922', days: 30 },
-  { name: 'Sunflower', emoji: '🌻', color: '#F59E0B', days: 30 },
-  { name: 'Rose',      emoji: '🌹', color: '#D4537E', days: 30 },
-  { name: 'Lavender',  emoji: '💜', color: '#7C3AED', days: 30 },
-  { name: 'Cherry blossom', emoji: '🌸', color: '#F472B6', days: 30 },
-  { name: 'Bamboo',    emoji: '🎋', color: '#16A34A', days: 30 },
-  { name: 'Lotus',     emoji: '🪷', color: '#C026D3', days: 30 },
-  { name: 'Orchid',    emoji: '🌺', color: '#DC2626', days: 30, pro: true },
+  { name: 'Sunflower',      species: 'sunflower', emoji: '🌻', color: '#F2A93B', accent: '#C9701A', leafColor: '#5C7A2E', days: 30 },
+  { name: 'Rose',           species: 'rose',      emoji: '🌹', color: '#C4566B', accent: '#8A3344', leafColor: '#4A6B3A', days: 30 },
+  { name: 'Lavender',       species: 'lavender',  emoji: '💜', color: '#8B6FB5', accent: '#5E4789', leafColor: '#7A8B5E', days: 30 },
+  { name: 'Cherry Blossom', species: 'blossom',   emoji: '🌸', color: '#F2B6C6', accent: '#E08BA3', leafColor: '#6B5A45', days: 30 },
+  { name: 'Tulip',          species: 'tulip',     emoji: '🌷', color: '#E0556B', accent: '#A8334A', leafColor: '#4F8A3E', days: 30 },
+  { name: 'Peony',          species: 'peony',     emoji: '🪷', color: '#E8A4C4', accent: '#C46B96', leafColor: '#557A3D', days: 30 },
+  { name: 'Orchid',         species: 'orchid',    emoji: '🌺', color: '#B5569E', accent: '#7A3470', leafColor: '#3D6B4A', days: 30, pro: true },
+  { name: 'Wisteria',       species: 'wisteria',  emoji: '💐', color: '#9B7FC7', accent: '#6B4FA0', leafColor: '#5C7A3E', days: 30, pro: true },
 ];
 
+// ══════════════════════════════════════════
+//  DAILY QUESTIONS — free + pro
+// ══════════════════════════════════════════
 const FREE_QUESTIONS = [
   "What made you smile today?",
   "What's something you've never told me before?",
@@ -525,8 +675,49 @@ const FREE_QUESTIONS = [
   "What song makes you think of me?",
   "What's something small I do that means a lot to you?",
   "What are you most excited about for our future?",
+  "What's a habit of mine you secretly love?",
+  "If we had a free day with no plans, what would your ideal version look like?",
+  "What's something you admire about how I handle hard days?",
+  "What's a meal you'd want to eat together every week if you could?",
+  "What's one thing you want me to ask you about more often?",
+  "What's a small moment from this week you want to remember?",
+  "What's something about me that made you fall for me?",
+  "If we wrote a story about us, what would the title be?",
+  "What's a place that reminds you of me?",
+  "What's something you're proud of yourself for this month?",
+  "What does feeling 'at home' with someone mean to you?",
+  "What's a tradition you'd like us to start?",
+  "What's something you've learned about love since being with me?",
+  "What's a compliment you don't hear often enough?",
+  "If you could freeze one moment from today, which would it be?",
 ];
 
+const PRO_QUESTIONS = [
+  "What does emotional safety look like to you in a relationship?",
+  "What's a fear you have about us that you've never said out loud?",
+  "When do you feel most understood by me?",
+  "What's something I do that helps you feel calm when you're stressed?",
+  "What's a story from your childhood that explains who you are today?",
+  "What does it mean to you when I show up for you in small ways?",
+  "What's something you need more of from me right now?",
+  "What's a belief about love you inherited from your family that you've kept or rejected?",
+  "When have you felt most proud to be with me?",
+  "What's something you wish I understood about how you process emotions?",
+  "What does forgiveness look like for you after a disagreement?",
+  "What's a dream you've never told anyone, including me?",
+  "What part of yourself are you still learning to love?",
+  "What's something about growing old together that excites you?",
+  "What's a way I could support you that I might not realise you need?",
+  "What does trust mean to you, practically, day to day?",
+  "What's a wound from the past you're still healing, even gently?",
+  "What's something you want our relationship to be known for?",
+  "When do you feel most like yourself around me?",
+  "What's a version of the future together that would make you truly happy?",
+];
+
+// ══════════════════════════════════════════
+//  WOULD YOU RATHER — free + pro
+// ══════════════════════════════════════════
 const WYR_QUESTIONS = [
   { a: "Always know what your partner is thinking", b: "Always know what your partner is feeling" },
   { a: "Have a surprise date planned for you", b: "Plan the perfect date yourself" },
@@ -536,6 +727,166 @@ const WYR_QUESTIONS = [
   { a: "Laugh together every single day", b: "Have one deep conversation a week" },
   { a: "Live in the city, close to everything", b: "Live somewhere quiet and beautiful" },
   { a: "Never argue but miss out on some passion", b: "Argue sometimes but feel deeply connected" },
+  { a: "Cook every meal together", b: "Take turns surprising each other with meals" },
+  { a: "Have matching sleep schedules", b: "Have completely different energy levels" },
+  { a: "Always say exactly what you're feeling", b: "Always know the right moment to say it" },
+  { a: "Have unlimited date night budget", b: "Have unlimited time together" },
+  { a: "Re-watch your favourite show together every year", b: "Always discover something new together" },
+  { a: "Win every small disagreement", b: "Always be the one who apologises first" },
+  { a: "Wake up early together", b: "Stay up late together" },
+  { a: "Take a big risk together (move cities, career change)", b: "Build something slow and steady together" },
+  { a: "Be told you're loved every day", b: "Be shown you're loved through actions" },
+  { a: "Have a huge wedding with everyone you know", b: "Elope somewhere just the two of you" },
+  { a: "Never run out of things to talk about", b: "Be comfortable in total silence together" },
+  { a: "Plan everything in advance", b: "Be spontaneous and decide in the moment" },
+  { a: "Have one shared hobby you both love", b: "Have separate hobbies you each get excited to share about" },
+  { a: "Get a pet together", b: "Wait until life feels more settled" },
+  { a: "Move somewhere warm and sunny", b: "Move somewhere cosy with four seasons" },
+  { a: "Have your families very involved in your relationship", b: "Keep things mostly private between you two" },
+  { a: "Save aggressively for the future", b: "Spend more on experiences now" },
+];
+
+const WYR_PRO_QUESTIONS = [
+  { a: "Know you'll never have a big argument again", b: "Know every argument makes you stronger" },
+  { a: "Have your partner read your mind once a year", b: "Have your partner ask you anything, anytime, no judgement" },
+  { a: "Relive your first date over and over", b: "Always be discovering new firsts together" },
+  { a: "Never need to compromise", b: "Always find a compromise you're both happy with" },
+  { a: "Have a relationship full of grand gestures", b: "Have a relationship full of quiet, steady consistency" },
+  { a: "Know exactly how your partner wants to be loved", b: "Spend a lifetime learning it together" },
+  { a: "Have unconditional trust from day one", b: "Build trust slowly and deeply over years" },
+  { a: "Be each other's biggest fan", b: "Be each other's most honest critic" },
+  { a: "Never feel jealous", b: "Feel jealous sometimes but always talk it through" },
+  { a: "Have a relationship that's effortless", b: "Have a relationship you both work hard for" },
+  { a: "Always know if something's wrong with your partner", b: "Have your partner always tell you when something's wrong" },
+  { a: "Share every single thought with each other", b: "Keep some thoughts private and respected" },
+  { a: "Be completely financially merged", b: "Keep some financial independence" },
+  { a: "Never need space from each other", b: "Need space sometimes but always come back closer" },
+];
+
+// ══════════════════════════════════════════
+//  THIS OR THAT — quickfire, lighter than WYR
+// ══════════════════════════════════════════
+const THIS_THAT_QUESTIONS = [
+  { a: "Movie night", b: "Game night" },
+  { a: "Morning person", b: "Night owl" },
+  { a: "Beach holiday", b: "Mountain holiday" },
+  { a: "Texting all day", b: "One long call at night" },
+  { a: "Cooking at home", b: "Eating out" },
+  { a: "Coffee", b: "Tea" },
+  { a: "Window seat", b: "Aisle seat" },
+  { a: "Spontaneous trip", b: "Carefully planned trip" },
+  { a: "Sweet breakfast", b: "Savoury breakfast" },
+  { a: "Hugging", b: "Hand holding" },
+  { a: "Slow dancing", b: "Dancing like nobody's watching" },
+  { a: "Picnic", b: "Restaurant" },
+  { a: "Comedy", b: "Drama" },
+  { a: "Camping", b: "Hotel" },
+  { a: "Surprise gifts", b: "Asking what they want" },
+  { a: "Quiet night in", b: "Night out with friends" },
+  { a: "Road trip", b: "Flying" },
+  { a: "Winter", b: "Summer" },
+  { a: "Early dinner", b: "Late dinner" },
+  { a: "Big group hangout", b: "Just the two of you" },
+  { a: "Plan the whole year", b: "Take it month by month" },
+  { a: "Slow mornings together", b: "Productive mornings, slow evenings" },
+  { a: "Watching the sunrise", b: "Watching the sunset" },
+  { a: "Handwritten notes", b: "Voice notes" },
+  { a: "Bath", b: "Shower" },
+  { a: "City lights", b: "Starry skies" },
+  { a: "Bold flavours", b: "Comfort food" },
+  { a: "Long walks", b: "Bike rides" },
+  { a: "Reading together", b: "Watching together" },
+  { a: "New restaurant", b: "Favourite regular spot" },
+];
+
+// ══════════════════════════════════════════
+//  TRUTH OR DARE — Pro only, relationship-safe
+// ══════════════════════════════════════════
+const TRUTH_QUESTIONS = [
+  "What's the most nervous you've ever been around me?",
+  "What's something you find attractive about me that you've never said?",
+  "What's a small lie you've told to avoid an argument?",
+  "What's the most romantic thing anyone has done for you?",
+  "What's something you were worried I'd judge you for, but didn't?",
+  "What's a habit of yours you think annoys me (even if it doesn't)?",
+  "What's the real reason you were drawn to me at first?",
+  "What's something you've changed your mind about since being with me?",
+  "What's a moment you felt the most in love with me?",
+  "What's something you'd want to redo differently in our relationship?",
+];
+
+const DARE_PROMPTS = [
+  "Give your partner a genuine compliment about something non-physical.",
+  "Recreate your first date conversation for 2 minutes.",
+  "Slow dance together for one song, no phones.",
+  "Write a 3-word love note and hide it somewhere they'll find it later.",
+  "Tell your partner your favourite thing they did this week.",
+  "Whisper something sweet in your partner's ear.",
+  "Give your partner a 60-second hand or shoulder massage.",
+  "Describe your partner using only 5 words, out loud.",
+  "Plan your next date night together, right now, on the spot.",
+  "Hold eye contact for 30 seconds without talking or laughing.",
+];
+
+// ══════════════════════════════════════════
+//  MEMORY QUIZ — Pro only
+// ══════════════════════════════════════════
+const MEMORY_QUIZ = [
+  "What was I wearing the day we met (or our first date)?",
+  "What's my order at our favourite coffee or food spot?",
+  "What's the name of my best friend?",
+  "What's my biggest pet peeve?",
+  "What was the first thing I ever said to you?",
+  "What's my favourite way to relax after a hard day?",
+  "What's a goal I've told you I want to achieve this year?",
+  "What's my go-to comfort food?",
+  "What's the first gift I ever gave you?",
+  "What's something I was nervous about when we first met?",
+  "What's my favourite season and why?",
+  "What's a place I've always wanted to travel to?",
+];
+
+// ══════════════════════════════════════════
+//  36 QUESTIONS TO FALL IN LOVE — Pro only
+//  Based on the famous Arthur Aron study, adapted
+// ══════════════════════════════════════════
+const THIRTYSIX_QUESTIONS = [
+  "Given the choice of anyone, who would you want as a dinner guest?",
+  "Would you like to be famous? In what way?",
+  "Before making a phone call, do you rehearse what you're going to say? Why?",
+  "What would constitute a 'perfect' day for you?",
+  "When did you last sing to yourself? To someone else?",
+  "If you could live to 90 and keep either the mind or body of a 30-year-old, which would you choose?",
+  "Do you have a secret hunch about how you will die?",
+  "Name three things you and your partner appear to have in common.",
+  "For what in your life do you feel most grateful?",
+  "If you could change anything about the way you were raised, what would it be?",
+  "Take 4 minutes to tell your partner your life story in as much detail as possible.",
+  "If you could wake up tomorrow having gained one quality or ability, what would it be?",
+  "If a crystal ball could tell you the truth about your life, what would you want to know?",
+  "Is there something you've dreamed of doing for a long time? Why haven't you done it?",
+  "What is the greatest accomplishment of your life?",
+  "What do you value most in a friendship?",
+  "What is your most treasured memory?",
+  "What is your most terrible memory?",
+  "If you knew that in one year you'd die suddenly, would you change anything about how you're living?",
+  "What does friendship mean to you?",
+  "What roles do love and affection play in your life?",
+  "Alternate sharing something you consider a positive characteristic of your partner — share 5 in total.",
+  "How close and warm is your family? Do you feel your childhood was happier than most?",
+  "How do you feel about your relationship with your mother?",
+  "Make 3 true 'we' statements each — e.g. 'We are both in this room feeling...'",
+  "Complete: 'I wish I had someone with whom I could share...'",
+  "If you were going to become a close friend with your partner, what would be important for them to know?",
+  "Tell your partner what you like about them — be honest, say things you might not say to a stranger.",
+  "Share an embarrassing moment in your life.",
+  "When did you last cry in front of another person? By yourself?",
+  "Tell your partner something you like about them already.",
+  "What, if anything, is too serious to be joked about?",
+  "If you were to die tonight with no chance to communicate, what would you most regret not telling someone?",
+  "Your house, with everything you own, catches fire. What would you save?",
+  "Of everyone in your family, whose death would you find most disturbing? Why?",
+  "Share a personal problem and ask your partner's advice on how they might handle it.",
 ];
 
 // ══════════════════════════════════════════
@@ -597,11 +948,15 @@ function plantNewSeed(idx) {
   state.currentPlant = {
     plantIndex: idx,
     name: p.name,
+    species: p.species,
     emoji: p.emoji,
     color: p.color,
+    accent: p.accent,
+    leafColor: p.leafColor,
     startDate: new Date().toISOString(),
     lastWatered: new Date().toISOString(),
     wateredToday: true,
+    waterLog: [new Date().toISOString()],
     dayCount: 0,
     isAlive: true,
     isComplete: false,
@@ -644,21 +999,102 @@ function checkPlantStatus() {
   }
 }
 
+const WATER_COOLDOWN_HOURS = 6;
+const WATER_COOLDOWN_AFTER = 3; // cooldown kicks in after this many waters in the window
+
+function getRecentWaters() {
+  if (!state.currentPlant || !state.currentPlant.waterLog) return [];
+  const cutoff = Date.now() - WATER_COOLDOWN_HOURS * 60 * 60 * 1000;
+  return state.currentPlant.waterLog.filter(t => new Date(t).getTime() > cutoff);
+}
+
+function getWaterCooldownStatus() {
+  const recent = getRecentWaters();
+  if (recent.length < WATER_COOLDOWN_AFTER) {
+    return { onCooldown: false, hoursLeft: 0, wateredCount: recent.length };
+  }
+  // Oldest of the recent waters determines when cooldown lifts
+  const oldest = new Date(recent[0]).getTime();
+  const unlocksAt = oldest + WATER_COOLDOWN_HOURS * 60 * 60 * 1000;
+  const msLeft = unlocksAt - Date.now();
+  if (msLeft <= 0) return { onCooldown: false, hoursLeft: 0, wateredCount: recent.length };
+  return { onCooldown: true, hoursLeft: msLeft / (1000*60*60), wateredCount: recent.length };
+}
+
 function waterPlant() {
   if (!state.currentPlant || !state.currentPlant.isAlive) return;
+  const cooldown = getWaterCooldownStatus();
+  if (cooldown.onCooldown) {
+    haptic();
+    const btn = document.getElementById('water-btn');
+    const hrs = Math.ceil(cooldown.hoursLeft);
+    btn.classList.add('wiggle');
+    const prevText = btn.innerHTML;
+    btn.innerHTML = `🌙 Resting — back in ${hrs}h`;
+    setTimeout(() => {
+      btn.classList.remove('wiggle');
+      btn.innerHTML = prevText;
+    }, 1800);
+    return;
+  }
   haptic();
-  state.currentPlant.lastWatered = new Date().toISOString();
+  const now = new Date().toISOString();
+  state.currentPlant.lastWatered = now;
   state.currentPlant.wateredToday = true;
+  if (!state.currentPlant.waterLog) state.currentPlant.waterLog = [];
+  state.currentPlant.waterLog.push(now);
+  // keep log trimmed to last 24h worth so it doesn't grow forever
+  const trimCutoff = Date.now() - 24 * 60 * 60 * 1000;
+  state.currentPlant.waterLog = state.currentPlant.waterLog.filter(t => new Date(t).getTime() > trimCutoff);
   save();
   const btn = document.getElementById('water-btn');
   btn.classList.add('pop', 'water-ripple');
   btn.innerHTML = '✅ Watered today';
   setTimeout(() => {
     btn.classList.remove('pop', 'water-ripple');
-    btn.innerHTML = '💧 Water now';
+    refreshPlantScreen();
   }, 2200);
   refreshPlantScreen();
   refreshHome();
+  growCelebration('plant-main-svg');
+}
+
+function growCelebration(wrapId) {
+  const wrap = document.getElementById(wrapId);
+  if (!wrap) return;
+  const svg = wrap.querySelector('svg');
+  if (svg) {
+    svg.classList.remove('plant-grow-shake');
+    void svg.offsetWidth;
+    svg.classList.add('plant-grow-shake');
+  }
+  wrap.style.position = 'relative';
+  // Water droplets
+  const drops = ['💧','💧','💧'];
+  drops.forEach((d, i) => {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'water-drop';
+      el.textContent = d;
+      el.style.left = (35 + i * 18 + Math.random()*10) + '%';
+      el.style.top = '0px';
+      wrap.appendChild(el);
+      setTimeout(() => el.remove(), 900);
+    }, i * 90);
+  });
+  // Sparkles on grow
+  setTimeout(() => {
+    const sparkles = ['✨','🌟','✨'];
+    sparkles.forEach((sp, i) => {
+      const el = document.createElement('div');
+      el.className = 'grow-sparkle';
+      el.textContent = sp;
+      el.style.left = (20 + i * 30 + Math.random()*15) + '%';
+      el.style.top = (20 + Math.random()*30) + '%';
+      wrap.appendChild(el);
+      setTimeout(() => el.remove(), 800);
+    });
+  }, 350);
 }
 
 function haptic() {
@@ -677,37 +1113,169 @@ function showCelebration() {
 // ══════════════════════════════════════════
 //  PLANT SVG GENERATOR
 // ══════════════════════════════════════════
+// ══════════════════════════════════════════
+//  SPECIES-SPECIFIC FLOWER HEADS (rendered at bloom)
+// ══════════════════════════════════════════
+function flowerHead(species, cx, cy, scale, color, accent) {
+  const s = scale;
+  switch(species) {
+    case 'sunflower':
+      return `
+        <g>
+          ${Array.from({length: 12}).map((_, i) => {
+            const ang = (i / 12) * 360;
+            return `<ellipse cx="${cx}" cy="${cy - 13*s}" rx="${4*s}" ry="${9*s}" fill="${color}" transform="rotate(${ang},${cx},${cy})"/>`;
+          }).join('')}
+          <circle cx="${cx}" cy="${cy}" r="${8*s}" fill="${accent}"/>
+          <circle cx="${cx}" cy="${cy}" r="${8*s}" fill="url(#seedPattern)" opacity="0.4"/>
+        </g>`;
+    case 'rose':
+      return `
+        <g>
+          <circle cx="${cx}" cy="${cy}" r="${10*s}" fill="${accent}"/>
+          <path d="M ${cx} ${cy-9*s} Q ${cx+9*s} ${cy-5*s} ${cx+7*s} ${cy+3*s} Q ${cx+4*s} ${cy+9*s} ${cx} ${cy+8*s} Q ${cx-4*s} ${cy+9*s} ${cx-7*s} ${cy+3*s} Q ${cx-9*s} ${cy-5*s} ${cx} ${cy-9*s} Z" fill="${color}"/>
+          <circle cx="${cx}" cy="${cy}" r="${5*s}" fill="${accent}"/>
+          <circle cx="${cx}" cy="${cy}" r="${2.5*s}" fill="${color}" opacity="0.7"/>
+        </g>`;
+    case 'lavender':
+      return `
+        <g>
+          ${Array.from({length: 7}).map((_, i) => {
+            const yOff = -i * 4.5 * s;
+            const xJit = (i % 2 === 0 ? 1 : -1) * 1.5 * s;
+            return `<ellipse cx="${cx + xJit}" cy="${cy + yOff}" rx="${3.5*s}" ry="${2.5*s}" fill="${i % 2 === 0 ? color : accent}"/>`;
+          }).join('')}
+        </g>`;
+    case 'blossom':
+      return `
+        <g>
+          ${[0,72,144,216,288].map(ang => `
+            <ellipse cx="${cx}" cy="${cy-7*s}" rx="${4.5*s}" ry="${7*s}" fill="${color}" transform="rotate(${ang},${cx},${cy})"/>
+          `).join('')}
+          <circle cx="${cx}" cy="${cy}" r="${3*s}" fill="${accent}"/>
+        </g>`;
+    case 'tulip':
+      return `
+        <g>
+          <path d="M ${cx-7*s} ${cy+6*s} Q ${cx-9*s} ${cy-8*s} ${cx} ${cy-10*s} Q ${cx+9*s} ${cy-8*s} ${cx+7*s} ${cy+6*s} Q ${cx+4*s} ${cy} ${cx} ${cy+2*s} Q ${cx-4*s} ${cy} ${cx-7*s} ${cy+6*s} Z" fill="${color}"/>
+          <path d="M ${cx-4*s} ${cy+4*s} Q ${cx-5*s} ${cy-6*s} ${cx} ${cy-8*s} Q ${cx+5*s} ${cy-6*s} ${cx+4*s} ${cy+4*s} Z" fill="${accent}" opacity="0.6"/>
+        </g>`;
+    case 'peony':
+      return `
+        <g>
+          <circle cx="${cx}" cy="${cy}" r="${11*s}" fill="${color}" opacity="0.5"/>
+          ${Array.from({length: 8}).map((_, i) => {
+            const ang = (i / 8) * 360;
+            const rad = 7*s;
+            const px = cx + rad * Math.cos(ang * Math.PI/180);
+            const py = cy + rad * Math.sin(ang * Math.PI/180);
+            return `<circle cx="${px}" cy="${py}" r="${5*s}" fill="${color}"/>`;
+          }).join('')}
+          <circle cx="${cx}" cy="${cy}" r="${5*s}" fill="${accent}"/>
+        </g>`;
+    case 'orchid':
+      return `
+        <g>
+          <ellipse cx="${cx}" cy="${cy-8*s}" rx="${5*s}" ry="${7*s}" fill="${color}" transform="rotate(0,${cx},${cy})"/>
+          <ellipse cx="${cx-8*s}" cy="${cy+2*s}" rx="${5*s}" ry="${7*s}" fill="${color}" transform="rotate(-50,${cx-8*s},${cy+2*s})"/>
+          <ellipse cx="${cx+8*s}" cy="${cy+2*s}" rx="${5*s}" ry="${7*s}" fill="${color}" transform="rotate(50,${cx+8*s},${cy+2*s})"/>
+          <ellipse cx="${cx}" cy="${cy+3*s}" rx="${4*s}" ry="${5*s}" fill="${accent}"/>
+          <circle cx="${cx}" cy="${cy}" r="${2*s}" fill="#F2D8B8"/>
+        </g>`;
+    case 'wisteria':
+      return `
+        <g>
+          ${Array.from({length: 5}).map((_, i) => {
+            const yOff = i * 5 * s;
+            const xSpread = Math.sin(i) * 3 * s;
+            return `<circle cx="${cx + xSpread}" cy="${cy + yOff - 8*s}" r="${4.5*s - i*0.3*s}" fill="${i % 2 === 0 ? color : accent}"/>`;
+          }).join('')}
+        </g>`;
+    default:
+      return `<circle cx="${cx}" cy="${cy}" r="${8*s}" fill="${color}"/>`;
+  }
+}
+
+// ══════════════════════════════════════════
+//  PLANT SVG GENERATOR — full growth system
+// ══════════════════════════════════════════
 function plantSVG(plant, size = 100) {
   if (!plant) return '';
   const days = plant.dayCount || 0;
   const pct = Math.min(days / 30, 1);
   const alive = plant.isAlive !== false;
-  const color = alive ? plant.color : '#9CA3AF';
-  const stemH = 20 + pct * 40;
-  const leafS = 0.3 + pct * 0.7;
+  const species = plant.species || 'rose';
+  const color = alive ? plant.color : '#A8A29E';
+  const accent = alive ? (plant.accent || plant.color) : '#78716C';
+  const leafColor = alive ? (plant.leafColor || '#6B7A3F') : '#A8A29E';
+
   const s = size;
   const cx = s / 2;
-  const base = s - 10;
+  const base = s - 8;
+  const potH = s * 0.13;
+
+  // Growth stages: 0-0.15 seedling, 0.15-0.45 sprout, 0.45-0.8 budding, 0.8-1 bloom
+  const stemH = 10 + pct * (s * 0.55);
+  const leafScale = Math.min(0.25 + pct * 1.1, 1.15);
+  const swayId = 'sway' + Math.round(Math.random()*99999);
+
+  let leaves = '';
+  if (pct > 0.12) {
+    leaves += `<ellipse cx="${cx-13*leafScale}" cy="${base-potH-stemH*0.35}" rx="${10*leafScale}" ry="${5.5*leafScale}" fill="${leafColor}" transform="rotate(-30,${cx-13*leafScale},${base-potH-stemH*0.35})"/>`;
+  }
+  if (pct > 0.22) {
+    leaves += `<ellipse cx="${cx+13*leafScale}" cy="${base-potH-stemH*0.5}" rx="${10*leafScale}" ry="${5.5*leafScale}" fill="${leafColor}" transform="rotate(30,${cx+13*leafScale},${base-potH-stemH*0.5})"/>`;
+  }
+  if (pct > 0.4) {
+    leaves += `<ellipse cx="${cx-11*leafScale}" cy="${base-potH-stemH*0.7}" rx="${8.5*leafScale}" ry="${5*leafScale}" fill="${leafColor}" transform="rotate(-35,${cx-11*leafScale},${base-potH-stemH*0.7})"/>`;
+  }
+  if (pct > 0.55) {
+    leaves += `<ellipse cx="${cx+11*leafScale}" cy="${base-potH-stemH*0.82}" rx="${8.5*leafScale}" ry="${5*leafScale}" fill="${leafColor}" transform="rotate(35,${cx+11*leafScale},${base-potH-stemH*0.82})"/>`;
+  }
+
+  const budY = base - potH - stemH;
+  let topElement = '';
+  if (pct <= 0.1) {
+    // seedling — tiny sprout tip
+    topElement = `<circle cx="${cx}" cy="${budY}" r="${2.5 + pct*20}" fill="${leafColor}"/>`;
+  } else if (pct < 0.45) {
+    // small bud
+    const budS = 0.3 + pct * 0.6;
+    topElement = `<ellipse cx="${cx}" cy="${budY}" rx="${5*budS}" ry="${7*budS}" fill="${color}" opacity="0.85"/>`;
+  } else if (pct < 0.8) {
+    // opening bud, slight flower forming
+    const budS = 0.5 + (pct - 0.45) * 1.2;
+    topElement = `
+      <ellipse cx="${cx}" cy="${budY}" rx="${6*budS}" ry="${8*budS}" fill="${color}" opacity="0.9"/>
+      <ellipse cx="${cx}" cy="${budY}" rx="${3.5*budS}" ry="${5*budS}" fill="${accent}" opacity="0.7"/>
+    `;
+  } else {
+    // full bloom — species specific!
+    const bloomScale = 0.75 + (pct - 0.8) * 1.25;
+    topElement = flowerHead(species, cx, budY, bloomScale, color, accent);
+  }
 
   return `<svg viewBox="0 0 ${s} ${s}" xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}">
-    ${alive ? '' : '<filter id="gray"><feColorMatrix type="saturate" values="0"/></filter>'}
-    <g ${alive ? '' : 'filter="url(#gray)"'}>
+    <defs>
+      <linearGradient id="potGrad${swayId}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${alive ? '#D4915A' : '#B0A89E'}"/>
+        <stop offset="100%" stop-color="${alive ? '#A8632F' : '#8C8478'}"/>
+      </linearGradient>
+      ${alive ? '' : `<filter id="gray${swayId}"><feColorMatrix type="saturate" values="0.15"/></filter>`}
+    </defs>
+    <g ${alive ? '' : `filter="url(#gray${swayId})" opacity="0.75"`}>
+      <!-- Soil shadow -->
+      <ellipse cx="${cx}" cy="${base+2}" rx="20" ry="3.5" fill="#000" opacity="0.06"/>
       <!-- Pot -->
-      <rect x="${cx-14}" y="${base-14}" width="28" height="14" rx="3" fill="#D97706"/>
-      <rect x="${cx-16}" y="${base-18}" width="32" height="5" rx="2" fill="#B45309"/>
+      <path d="M ${cx-15} ${base-potH} L ${cx-12} ${base+6} Q ${cx-12} ${base+9} ${cx-9} ${base+9} L ${cx+9} ${base+9} Q ${cx+12} ${base+9} ${cx+12} ${base+6} L ${cx+15} ${base-potH} Z" fill="url(#potGrad${swayId})"/>
+      <rect x="${cx-17}" y="${base-potH-4}" width="34" height="6" rx="2.5" fill="${alive ? '#B5713A' : '#9C9488'}"/>
+      <ellipse cx="${cx}" cy="${base-potH-1}" rx="14.5" ry="2.5" fill="${alive ? '#5C4A35' : '#6B6660'}"/>
       <!-- Stem -->
-      <line x1="${cx}" y1="${base-14}" x2="${cx}" y2="${base-14-stemH}" stroke="#639922" stroke-width="3" stroke-linecap="round"/>
+      <path d="M ${cx} ${base-potH-2} Q ${cx + Math.sin(pct*3)*4} ${base-potH-stemH*0.5} ${cx} ${budY}" stroke="${leafColor}" stroke-width="${2.5 + pct*1.5}" fill="none" stroke-linecap="round"/>
       <!-- Leaves -->
-      ${pct > 0.1 ? `<ellipse cx="${cx-14*leafS}" cy="${base-14-stemH*0.4}" rx="${12*leafS}" ry="${7*leafS}" fill="${color}" transform="rotate(-25,${cx-14*leafS},${base-14-stemH*0.4})"/>` : ''}
-      ${pct > 0.2 ? `<ellipse cx="${cx+14*leafS}" cy="${base-14-stemH*0.55}" rx="${12*leafS}" ry="${7*leafS}" fill="${color}" transform="rotate(25,${cx+14*leafS},${base-14-stemH*0.55})"/>` : ''}
-      ${pct > 0.5 ? `<ellipse cx="${cx-12*leafS}" cy="${base-14-stemH*0.75}" rx="${10*leafS}" ry="${6*leafS}" fill="${color}" transform="rotate(-30,${cx-12*leafS},${base-14-stemH*0.75})"/>` : ''}
-      ${pct > 0.7 ? `<ellipse cx="${cx+12*leafS}" cy="${base-14-stemH*0.85}" rx="${10*leafS}" ry="${6*leafS}" fill="${color}" transform="rotate(30,${cx+12*leafS},${base-14-stemH*0.85})"/>` : ''}
-      <!-- Flower/top -->
-      ${pct > 0.85 ? `
-        <circle cx="${cx}" cy="${base-14-stemH}" r="${8*leafS}" fill="${color}"/>
-        <circle cx="${cx}" cy="${base-14-stemH}" r="${5*leafS}" fill="white" opacity="0.5"/>
-        <text x="${cx}" y="${base-14-stemH+5}" text-anchor="middle" font-size="${14*leafS}" style="user-select:none">${plant.emoji}</text>
-      ` : ''}
+      ${leaves}
+      <!-- Top: bud or bloom -->
+      ${topElement}
     </g>
   </svg>`;
 }
@@ -770,6 +1338,20 @@ function refreshPlantScreen() {
   document.getElementById('plant-warn-alert').style.display = (p.isAlive && hrs > 18) ? 'flex' : 'none';
   document.getElementById('plant-ok-alert').style.display = (p.isAlive && hrs <= 6) ? 'flex' : 'none';
 
+  // Water button state — reflects cooldown
+  const btn = document.getElementById('water-btn');
+  if (p.isAlive) {
+    const cooldown = getWaterCooldownStatus();
+    if (cooldown.onCooldown) {
+      const hrsLeft = Math.ceil(cooldown.hoursLeft);
+      btn.innerHTML = `🌙 Resting — back in ${hrsLeft}h`;
+      btn.style.opacity = '0.65';
+    } else {
+      btn.innerHTML = '💧 Water now';
+      btn.style.opacity = '1';
+    }
+  }
+
   // Next plant preview
   const nextIdx = state.garden.length + 1;
   const next = PLANTS[nextIdx % PLANTS.length];
@@ -802,15 +1384,132 @@ function refreshGarden() {
   }).join('');
 }
 
+const GAME_CONFIG = {
+  wyr: { title: 'Would You Rather', cat: 'Would you rather', icon: '🤔', type: 'choice', pro: false,
+    getDeck: () => state.isPro ? [...WYR_QUESTIONS, ...WYR_PRO_QUESTIONS] : WYR_QUESTIONS },
+  daily: { title: 'Daily Questions', cat: 'Daily question', icon: '💬', type: 'text', pro: false,
+    getDeck: () => state.isPro ? [...FREE_QUESTIONS, ...PRO_QUESTIONS] : FREE_QUESTIONS },
+  thisthat: { title: 'This or That', cat: 'This or that', icon: '⚡', type: 'choice', pro: false,
+    getDeck: () => THIS_THAT_QUESTIONS },
+  dare: { title: 'Truth or Dare', cat: 'Truth or dare', icon: '🎯', type: 'truthdare', pro: true,
+    getDeck: () => [] },
+  memory: { title: 'Memory Quiz', cat: 'Memory quiz', icon: '🧠', type: 'text', pro: true,
+    getDeck: () => MEMORY_QUIZ },
+  deep: { title: '36 Questions', cat: 'To fall in love', icon: '🕯️', type: 'text', pro: true,
+    getDeck: () => THIRTYSIX_QUESTIONS },
+};
+
+let activeGame = null;
+let gameRecentIdx = [];
+
 function refreshGames() {
-  const list = document.getElementById('questions-list');
-  list.innerHTML = FREE_QUESTIONS.slice(0, 5).map((q,i) => `
-    <div class="question-card" style="margin-bottom:10px">
-      <div class="question-cat">Question ${i+1}</div>
-      <div class="question-text">${q}</div>
-    </div>
-  `).join('');
-  loadWyr();
+  document.getElementById('count-wyr').textContent = `${GAME_CONFIG.wyr.getDeck().length} prompts`;
+  document.getElementById('count-daily').textContent = `${GAME_CONFIG.daily.getDeck().length} prompts`;
+  document.getElementById('count-thisthat').textContent = `${GAME_CONFIG.thisthat.getDeck().length} prompts`;
+  document.querySelectorAll('#game-picker .game-tile').forEach(tile => {});
+  // Update lock state on Pro tiles
+  ['dare','memory','deep'].forEach(key => {
+    const tileBtns = document.querySelectorAll('#game-picker .game-tile');
+  });
+}
+
+function openGame(key) {
+  const cfg = GAME_CONFIG[key];
+  if (!cfg) return;
+  if (cfg.pro && !state.isPro) { showProModal(); return; }
+  haptic();
+  activeGame = key;
+  gameRecentIdx = [];
+  document.getElementById('games-hub').style.display = 'none';
+  document.getElementById('game-active').style.display = 'block';
+  document.getElementById('game-active-title').textContent = `${cfg.icon} ${cfg.title}`;
+  document.getElementById('game-cat').textContent = cfg.cat;
+
+  if (cfg.type === 'truthdare') {
+    renderTruthDare();
+  } else {
+    nextGamePrompt();
+  }
+}
+
+function closeGame() {
+  haptic();
+  activeGame = null;
+  document.getElementById('games-hub').style.display = 'block';
+  document.getElementById('game-active').style.display = 'none';
+}
+
+function pickNonRepeating(deck) {
+  if (deck.length === 0) return null;
+  if (deck.length === 1) return 0;
+  let idx;
+  const recentWindow = Math.min(gameRecentIdx.length, Math.floor(deck.length * 0.6));
+  do { idx = Math.floor(Math.random() * deck.length); } while (gameRecentIdx.slice(-recentWindow).includes(idx));
+  gameRecentIdx.push(idx);
+  if (gameRecentIdx.length > deck.length) gameRecentIdx.shift();
+  return idx;
+}
+
+function nextGamePrompt() {
+  const cfg = GAME_CONFIG[activeGame];
+  if (!cfg) return;
+  haptic();
+  const deck = cfg.getDeck();
+  const idx = pickNonRepeating(deck);
+  if (idx === null) return;
+  const item = deck[idx];
+
+  const textEl = document.getElementById('game-text');
+  const choicesEl = document.getElementById('game-choices');
+  textEl.classList.remove('fade-up'); void textEl.offsetWidth; textEl.classList.add('fade-up');
+
+  if (cfg.type === 'choice') {
+    textEl.textContent = activeGame === 'wyr' ? 'Would you rather...' : 'This or that?';
+    choicesEl.style.display = 'flex';
+    choicesEl.innerHTML = `
+      <button class="btn btn-ghost btn-sm" style="flex:1" onclick="pickChoice('${item.a.replace(/'/g,"\\'")}')">${item.a}</button>
+      <button class="btn btn-ghost btn-sm" style="flex:1" onclick="pickChoice('${item.b.replace(/'/g,"\\'")}')">${item.b}</button>
+    `;
+  } else {
+    choicesEl.style.display = 'none';
+    choicesEl.innerHTML = '';
+    textEl.textContent = item;
+  }
+
+  const deckLen = deck.length;
+  document.getElementById('game-progress-row').textContent = `${deckLen} prompts in this deck${cfg.pro || activeGame==='wyr' || activeGame==='daily' ? (state.isPro ? ' · Pro unlocked ✦' : '') : ''}`;
+}
+
+function pickChoice(text) {
+  haptic();
+  const textEl = document.getElementById('game-text');
+  textEl.textContent = `You chose: "${text}" — ask your partner what they'd pick!`;
+  setTimeout(nextGamePrompt, 2800);
+}
+
+function renderTruthDare() {
+  const textEl = document.getElementById('game-text');
+  const choicesEl = document.getElementById('game-choices');
+  choicesEl.style.display = 'flex';
+  choicesEl.innerHTML = `
+    <button class="btn btn-ghost btn-sm" style="flex:1" onclick="showTruthOrDare('truth')">😇 Truth</button>
+    <button class="btn btn-ghost btn-sm" style="flex:1" onclick="showTruthOrDare('dare')">🔥 Dare</button>
+  `;
+  textEl.textContent = 'Pick one together...';
+  document.getElementById('game-progress-row').textContent = `${TRUTH_QUESTIONS.length} truths · ${DARE_PROMPTS.length} dares`;
+}
+
+function showTruthOrDare(kind) {
+  haptic();
+  const deck = kind === 'truth' ? TRUTH_QUESTIONS : DARE_PROMPTS;
+  const idx = pickNonRepeating(deck);
+  const textEl = document.getElementById('game-text');
+  textEl.classList.remove('fade-up'); void textEl.offsetWidth; textEl.classList.add('fade-up');
+  textEl.textContent = deck[idx];
+  document.getElementById('game-cat').textContent = kind === 'truth' ? '😇 Truth' : '🔥 Dare';
+  document.getElementById('game-choices').innerHTML = `
+    <button class="btn btn-outline btn-sm" style="flex:1" onclick="renderTruthDare()">Pick again</button>
+  `;
 }
 
 function refreshUs() {
@@ -823,38 +1522,24 @@ function refreshUs() {
 }
 
 // ══════════════════════════════════════════
-//  QUESTIONS
+//  QUESTIONS (home screen)
 // ══════════════════════════════════════════
 function loadDailyQuestion() {
-  const idx = new Date().getDate() % FREE_QUESTIONS.length;
-  document.getElementById('home-question-text').textContent = FREE_QUESTIONS[idx];
+  const pool = [...FREE_QUESTIONS, ...(state.isPro ? PRO_QUESTIONS : [])];
+  const idx = new Date().getDate() % pool.length;
+  document.getElementById('home-question-text').textContent = pool[idx];
 }
 function newDailyQuestion() {
   haptic();
+  const pool = [...FREE_QUESTIONS, ...(state.isPro ? PRO_QUESTIONS : [])];
   const el = document.getElementById('home-question-text');
   const cur = el.textContent;
   let next;
-  do { next = FREE_QUESTIONS[Math.floor(Math.random() * FREE_QUESTIONS.length)]; } while (next === cur);
+  do { next = pool[Math.floor(Math.random() * pool.length)]; } while (next === cur);
   el.classList.remove('fade-up');
   void el.offsetWidth;
   el.classList.add('fade-up');
   el.textContent = next;
-}
-
-function loadWyr() {
-  haptic();
-  const q = WYR_QUESTIONS[Math.floor(Math.random() * WYR_QUESTIONS.length)];
-  document.getElementById('wyr-text').textContent = 'Would you rather...';
-  document.getElementById('wyr-a').textContent = q.a;
-  document.getElementById('wyr-b').textContent = q.b;
-  document.getElementById('wyr-a').dataset.q = q.a;
-  document.getElementById('wyr-b').dataset.q = q.b;
-}
-function pickWyr(choice) {
-  haptic();
-  const q = choice === 'A' ? document.getElementById('wyr-a').dataset.q : document.getElementById('wyr-b').dataset.q;
-  document.getElementById('wyr-text').textContent = `You chose: "${q}" — ask your partner what they'd choose!`;
-  setTimeout(loadWyr, 3000);
 }
 
 // ══════════════════════════════════════════
@@ -1001,6 +1686,171 @@ if (state.myName) {
 setInterval(() => {
   if (state.myName) { checkPlantStatus(); refreshPlantScreen(); }
 }, 60000);
+
+// ══════════════════════════════════════════
+//  FIREBASE PARTNER SYNC
+// ══════════════════════════════════════════
+let unsubscribeSync = null;
+
+function generateInviteCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
+async function initFirebaseSync() {
+  if (!window._firebaseReady) {
+    window.addEventListener('firebaseReady', initFirebaseSync, { once: true });
+    return;
+  }
+  if (!state.coupleId) return;
+  const { doc, onSnapshot } = window._fbFns;
+  const db = window._db;
+  // Listen to the couple document in real time
+  if (unsubscribeSync) unsubscribeSync();
+  unsubscribeSync = onSnapshot(doc(db, 'couples', state.coupleId), (snap) => {
+    if (!snap.exists()) return;
+    const remote = snap.data();
+    // Merge remote state into local — remote wins for shared data
+    if (remote.currentPlant) state.currentPlant = remote.currentPlant;
+    if (remote.garden) state.garden = remote.garden;
+    if (remote.partnerName && !state.partnerName) {
+      state.partnerName = remote.partnerName;
+    }
+    if (remote.partnerConnected) {
+      state.partnerConnected = true;
+      document.getElementById('partner-waiting').style.display = 'none';
+      document.getElementById('partner-joined').style.display = 'flex';
+      document.getElementById('set-partner-status').textContent = '✅ Connected';
+      document.getElementById('set-partner-status').style.color = 'var(--sage)';
+    }
+    save();
+    refreshAll();
+  });
+}
+
+async function pushToFirebase() {
+  if (!window._firebaseReady || !state.coupleId) return;
+  const { doc, setDoc } = window._fbFns;
+  const db = window._db;
+  try {
+    await setDoc(doc(db, 'couples', state.coupleId), {
+      currentPlant: state.currentPlant || null,
+      garden: state.garden || [],
+      creatorName: state.myName,
+      partnerName: state.partnerName || '',
+      updatedAt: Date.now(),
+      partnerConnected: state.partnerConnected || false,
+    }, { merge: true });
+  } catch(e) {
+    console.error('Firebase push failed:', e);
+  }
+}
+
+// Patch save() to also push to Firebase
+const _localSave = save;
+function save() {
+  localStorage.setItem('spark_state', JSON.stringify(state));
+  pushToFirebase();
+}
+
+// ── Partner setup UI ──
+function showPartnerSetup() {
+  haptic();
+  // Generate an invite code if we don't have one
+  if (!state.coupleId) {
+    state.coupleId = generateInviteCode();
+    localStorage.setItem('spark_state', JSON.stringify(state));
+    // Create the couple document in Firebase
+    if (window._firebaseReady) {
+      const { doc, setDoc } = window._fbFns;
+      setDoc(window._db, doc(window._db, 'couples', state.coupleId), {
+        currentPlant: state.currentPlant || null,
+        garden: state.garden || [],
+        creatorName: state.myName,
+        partnerName: state.partnerName || '',
+        createdAt: Date.now(),
+        partnerConnected: false,
+      });
+      initFirebaseSync();
+    }
+  }
+  document.getElementById('invite-code-display').textContent = state.coupleId;
+  document.getElementById('partner-setup').classList.add('show');
+  switchPartnerTab('create');
+}
+
+function closePartnerSetup() {
+  document.getElementById('partner-setup').classList.remove('show');
+}
+
+function switchPartnerTab(tab) {
+  document.querySelectorAll('.partner-tab').forEach((t,i) => {
+    t.classList.toggle('active', (i===0 && tab==='create') || (i===1 && tab==='join'));
+  });
+  document.getElementById('panel-create').classList.toggle('active', tab==='create');
+  document.getElementById('panel-join').classList.toggle('active', tab==='join');
+}
+
+function copyInviteCode() {
+  haptic();
+  navigator.clipboard.writeText(state.coupleId).then(() => {
+    const btn = document.querySelector('#panel-create .btn-ghost');
+    btn.textContent = '✅ Copied!';
+    setTimeout(() => btn.textContent = '📋 Copy code', 2000);
+  });
+}
+
+async function joinWithCode() {
+  if (!window._firebaseReady) return;
+  haptic();
+  const code = document.getElementById('join-code-input').value.trim().toUpperCase();
+  if (code.length < 6) return;
+  const { doc, getDoc, updateDoc } = window._fbFns;
+  const db = window._db;
+  const errEl = document.getElementById('join-error');
+  errEl.style.display = 'none';
+  try {
+    const snap = await getDoc(doc(db, 'couples', code));
+    if (!snap.exists()) {
+      errEl.style.display = 'block';
+      return;
+    }
+    const data = snap.data();
+    // Link this user to the couple
+    state.coupleId = code;
+    state.currentPlant = data.currentPlant || state.currentPlant;
+    state.garden = data.garden || [];
+    if (data.creatorName) state.partnerName = data.creatorName;
+    state.partnerConnected = true;
+    save();
+    // Update the couple doc so the creator knows someone joined
+    await updateDoc(doc(db, 'couples', code), {
+      partnerConnected: true,
+      partnerName: state.myName,
+    });
+    initFirebaseSync();
+    closePartnerSetup();
+    refreshAll();
+    // Toast
+    const t = document.createElement('div');
+    t.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);background:var(--sage);color:white;padding:14px 22px;border-radius:30px;font-weight:700;font-size:15px;z-index:9999;animation:fadeUp .3s ease';
+    t.textContent = '🌱 Connected! You\'re growing together.';
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+  } catch(e) {
+    errEl.style.display = 'block';
+    console.error('Join error:', e);
+  }
+}
+
+// On load, reconnect Firebase if we have a coupleId
+if (state.coupleId) {
+  window.addEventListener('firebaseReady', initFirebaseSync, { once: true });
+  if (window._firebaseReady) initFirebaseSync();
+}
+
 </script>
 </body>
 </html>
