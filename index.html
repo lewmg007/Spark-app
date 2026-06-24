@@ -3,9 +3,17 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
-<meta name="theme-color" content="#FDF8F4"/>
+<meta name="theme-color" content="#FAF5EE"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="Spark"/>
+<meta name="application-name" content="Spark"/>
+<meta name="description" content="Grow your relationship, one day at a time."/>
+<link rel="manifest" href="/manifest.json"/>
+<link rel="apple-touch-icon" href="/icon-192.png"/>
+<link rel="apple-touch-icon" sizes="152x152" href="/icon-192.png"/>
+<link rel="apple-touch-icon" sizes="180x180" href="/icon-192.png"/>
+<link rel="apple-touch-icon" sizes="167x167" href="/icon-192.png"/>
 <title>Spark</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -13,6 +21,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, doc, setDoc, getDoc, onSnapshot, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAXOvpj1ogIeldTKn4XFE2ljm045AkANLM",
@@ -25,8 +34,10 @@ const firebaseConfig = {
 
 const fbApp = initializeApp(firebaseConfig);
 const db = getFirestore(fbApp);
+const messaging = getMessaging(fbApp);
 window._db = db;
-window._fbFns = { doc, setDoc, getDoc, onSnapshot, updateDoc, serverTimestamp };
+window._messaging = messaging;
+window._fbFns = { doc, setDoc, getDoc, onSnapshot, updateDoc, serverTimestamp, getToken, onMessage };
 window._firebaseReady = true;
 window.dispatchEvent(new Event('firebaseReady'));
 </script>
@@ -200,6 +211,83 @@ window.dispatchEvent(new Event('firebaseReady'));
   .pro-banner p { font-size: 13px; opacity: 0.85; margin-bottom: 14px; }
   .btn-white { background: white; color: var(--rose-dark); font-weight: 700; }
   
+  /* ── Milestones ── */
+  .milestone-timeline { display: flex; flex-direction: column; gap: 0; }
+  .milestone-item { display: flex; gap: 14px; align-items: flex-start; padding: 14px 0; border-bottom: 0.5px solid var(--border); position: relative; }
+  .milestone-item:last-child { border-bottom: none; }
+  .milestone-dot { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .milestone-dot.achieved { background: linear-gradient(135deg, var(--rose), var(--rose-dark)); }
+  .milestone-dot.upcoming { background: var(--cream-deep); }
+  .milestone-dot.custom { background: linear-gradient(135deg, var(--sage), var(--sage-dark)); }
+  .milestone-content { flex: 1; }
+  .milestone-title { font-size: 14px; font-weight: 700; color: var(--ink); }
+  .milestone-date { font-size: 12px; color: var(--stone); margin-top: 2px; }
+  .milestone-countdown { font-size: 12px; font-weight: 700; color: var(--rose); margin-top: 2px; }
+  .milestone-achieved-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; background: var(--petal); color: var(--rose-dark); margin-top: 4px; display: inline-block; }
+  .add-milestone-btn { display: flex; align-items: center; gap: 8px; width: 100%; padding: 12px 0; background: none; border: none; font-family: var(--font); font-size: 13px; font-weight: 700; color: var(--rose); cursor: pointer; }
+
+  /* ── Onboarding upgrade ── */
+  .ob-plant-preview { width: 130px; height: 130px; margin: 0 auto 16px; animation: splashPop 0.6s cubic-bezier(.34,1.56,.64,1) both; }
+  .ob-step-label { font-size: 11px; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+  .ob-feature-list { text-align: left; background: var(--white); border-radius: var(--r); padding: 16px; margin-bottom: 20px; border: 1px solid var(--border); }
+  .ob-feature { display: flex; align-items: center; gap: 10px; padding: 7px 0; font-size: 13px; font-weight: 600; color: var(--ink); border-bottom: 0.5px solid var(--border); }
+  .ob-feature:last-child { border-bottom: none; }
+  .ob-feature-icon { font-size: 20px; width: 28px; text-align: center; flex-shrink: 0; }
+
+  /* ── Love notes ── */
+  .note-composer { padding: 14px 20px 0; flex-shrink: 0; }
+  .note-style-row { display: flex; gap: 7px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
+  .note-style-row::-webkit-scrollbar { display: none; }
+  .note-style-btn { flex-shrink: 0; padding: 6px 12px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--white); font-family: var(--font); font-size: 12px; font-weight: 600; color: var(--ink); cursor: pointer; transition: all 0.15s; }
+  .note-style-btn.active { background: var(--ink); color: white; border-color: var(--ink); }
+  .note-style-btn.locked { color: var(--stone); background: var(--petal); border-color: var(--blush); }
+  .note-paper { border-radius: var(--r); padding: 16px; margin-bottom: 4px; border: 1px solid var(--border); box-shadow: var(--shadow); transition: background 0.3s, border-color 0.3s; }
+  .note-paper.style-classic { background: var(--white); }
+  .note-paper.style-rose { background: #FEF0F3; border-color: #F2C4C4; }
+  .note-paper.style-sage { background: #F3F7EB; border-color: #C8D9A8; }
+  .note-textarea { width: 100%; background: none; border: none; outline: none; font-family: var(--font-display); font-size: 17px; font-weight: 400; color: var(--ink); resize: none; min-height: 80px; line-height: 1.6; }
+  .note-textarea::placeholder { color: var(--stone); opacity: 0.6; font-style: italic; }
+  .note-footer-row { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+  .note-char-count { font-size: 11px; color: var(--stone); font-weight: 600; }
+  .note-bubble { border-radius: var(--r); padding: 16px 18px; margin-bottom: 12px; position: relative; box-shadow: var(--shadow); animation: fadeUp 0.3s ease; }
+  .note-bubble.mine { margin-left: 30px; }
+  .note-bubble.theirs { margin-right: 30px; }
+  .note-bubble.style-classic.mine { background: var(--white); border: 1px solid var(--border); }
+  .note-bubble.style-classic.theirs { background: var(--petal); border: 1px solid var(--blush); }
+  .note-bubble.style-rose { background: #FEF0F3; border: 1px solid #F2C4C4; }
+  .note-bubble.style-sage { background: #F3F7EB; border: 1px solid #C8D9A8; }
+  .note-text { font-family: var(--font-display); font-size: 16px; color: var(--ink); line-height: 1.6; margin-bottom: 10px; }
+  .note-meta { display: flex; align-items: center; justify-content: space-between; }
+  .note-sender { font-size: 11px; font-weight: 700; color: var(--stone); }
+  .note-time { font-size: 11px; color: var(--stone); }
+  .note-reactions { display: flex; gap: 5px; margin-top: 8px; flex-wrap: wrap; }
+  .note-react-btn { background: var(--cream-deep); border: none; border-radius: 20px; padding: 4px 8px; font-size: 14px; cursor: pointer; transition: transform 0.15s; }
+  .note-react-btn:active { transform: scale(1.3); }
+  .note-reaction-display { font-size: 18px; }
+  .note-unread-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--rose); display: inline-block; margin-left: 6px; animation: pulseDot 1.5s ease-in-out infinite; }
+
+  /* ── Coach sheet ── */
+  #coach-sheet { display: none; position: fixed; inset: 0; background: rgba(44,31,26,0.6); z-index: 998; flex-direction: column; justify-content: flex-end; max-width: 430px; margin: 0 auto; }
+  #coach-sheet.show { display: flex; }
+  .coach-inner { background: var(--cream); border-radius: 24px 24px 0 0; height: 75dvh; display: flex; flex-direction: column; }
+  .coach-header { padding: 16px 20px 10px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .coach-header h3 { font-size: 16px; font-weight: 700; color: var(--ink); }
+
+  /* ── Splash screen ── */
+  #splash { position: fixed; inset: 0; background: linear-gradient(160deg, #FAF5EE 0%, #F3EBDD 60%, #EDE0CC 100%); z-index: 9999; display: flex; align-items: center; justify-content: center; transition: opacity 0.5s ease, transform 0.5s ease; }
+  #splash.hidden { opacity: 0; transform: scale(1.04); pointer-events: none; }
+  #splash-inner { display: flex; flex-direction: column; align-items: center; gap: 0; }
+  #splash-icon { margin-bottom: 18px; animation: splashPop 0.6s cubic-bezier(.34,1.56,.64,1) 0.2s both; }
+  #splash-title { font-family: var(--font-display); font-size: 42px; font-weight: 600; color: var(--ink); letter-spacing: -1px; animation: splashFade 0.5s ease 0.5s both; }
+  #splash-sub { font-size: 15px; color: var(--stone); font-weight: 500; margin-top: 6px; animation: splashFade 0.5s ease 0.7s both; }
+  #splash-dots { display: flex; gap: 8px; margin-top: 40px; animation: splashFade 0.5s ease 0.9s both; }
+  #splash-dots span { width: 7px; height: 7px; border-radius: 50%; background: var(--rose); opacity: 0.3; animation: splashDot 1.2s ease-in-out infinite; }
+  #splash-dots span:nth-child(2) { animation-delay: 0.2s; }
+  #splash-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes splashPop { from { opacity:0; transform: scale(0.6) rotate(-10deg); } to { opacity:1; transform: scale(1) rotate(0deg); } }
+  @keyframes splashFade { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+  @keyframes splashDot { 0%,100%{ opacity:0.3; transform:scale(1); } 50%{ opacity:1; transform:scale(1.4); } }
+
   /* ── Animations ── */
   @keyframes fadeUp { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform: translateY(0); } }
   .fade-up { animation: fadeUp 0.3s ease forwards; }
@@ -262,33 +350,106 @@ window.dispatchEvent(new Event('firebaseReady'));
 </head>
 <body>
 
+<!-- ─── SPLASH SCREEN ─── -->
+<div id="splash">
+  <div id="splash-inner">
+    <div id="splash-icon">
+      <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" width="96" height="96">
+        <!-- Background circle -->
+        <circle cx="60" cy="60" r="60" fill="#C4566B"/>
+        <!-- Pot -->
+        <path d="M44 88 L47 100 Q47 103 50 103 L70 103 Q73 103 73 100 L76 88 Z" fill="#A8633B"/>
+        <rect x="42" y="84" width="36" height="6" rx="3" fill="#8A4F2E"/>
+        <!-- Stem -->
+        <path d="M60 84 Q58 70 60 52" stroke="#EAF3DE" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+        <!-- Left leaf -->
+        <ellipse cx="48" cy="68" rx="13" ry="7" fill="#EAF3DE" transform="rotate(-35,48,68)"/>
+        <!-- Right leaf -->
+        <ellipse cx="72" cy="60" rx="13" ry="7" fill="#EAF3DE" transform="rotate(35,72,60)"/>
+        <!-- Upper left leaf -->
+        <ellipse cx="50" cy="56" rx="10" ry="6" fill="white" opacity="0.7" transform="rotate(-40,50,56)"/>
+        <!-- Bloom petals -->
+        <circle cx="60" cy="44" r="5" fill="white" opacity="0.9"/>
+        <circle cx="68" cy="48" r="4" fill="white" opacity="0.7"/>
+        <circle cx="52" cy="48" r="4" fill="white" opacity="0.7"/>
+        <circle cx="60" cy="36" r="4" fill="white" opacity="0.8"/>
+        <!-- Centre -->
+        <circle cx="60" cy="44" r="3" fill="#F2A93B"/>
+      </svg>
+    </div>
+    <div id="splash-title">Spark</div>
+    <div id="splash-sub">Grow your relationship</div>
+    <div id="splash-dots">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+</div>
+
 <!-- ─── ONBOARDING ─── -->
 <div id="onboarding">
   <div id="onboarding-inner">
-    <div class="ob-logo">🌱</div>
-    <h1 class="ob-title">Spark</h1>
-    <p class="ob-sub">Grow your relationship, one day at a time.</p>
 
+    <!-- Step 1: Welcome -->
     <div class="ob-step active" id="ob-1">
-      <input class="ob-input" id="ob-name" placeholder="Your name" autocomplete="given-name"/>
-      <button class="btn btn-rose" onclick="obNext(1)">Continue →</button>
+      <div class="ob-plant-preview" id="ob-plant-anim"></div>
+      <h1 class="ob-title">Spark</h1>
+      <p class="ob-sub">A private space to grow your relationship, one day at a time.</p>
+      <div class="ob-feature-list">
+        <div class="ob-feature"><span class="ob-feature-icon">🌱</span>Grow a shared plant together daily</div>
+        <div class="ob-feature"><span class="ob-feature-icon">💌</span>Send love notes to each other</div>
+        <div class="ob-feature"><span class="ob-feature-icon">🎮</span>Play couples games & questions</div>
+        <div class="ob-feature"><span class="ob-feature-icon">🌻</span>Build a garden of memories</div>
+      </div>
+      <button class="btn btn-rose" onclick="obNext(1)">Get started 🌱</button>
     </div>
 
+    <!-- Step 2: Your name -->
     <div class="ob-step" id="ob-2">
-      <input class="ob-input" id="ob-partner" placeholder="Your partner's name"/>
+      <div style="font-size:56px;margin-bottom:12px;animation:splashPop 0.5s cubic-bezier(.34,1.56,.64,1) both">👤</div>
+      <h1 class="ob-title" style="font-size:28px;margin-bottom:8px">What's your name?</h1>
+      <p class="ob-sub" style="margin-bottom:24px">This is how your partner will see you in the app.</p>
+      <input class="ob-input" id="ob-name" placeholder="Your first name" autocomplete="given-name"/>
       <button class="btn btn-rose" onclick="obNext(2)">Continue →</button>
     </div>
 
+    <!-- Step 3: Partner name -->
     <div class="ob-step" id="ob-3">
+      <div style="font-size:56px;margin-bottom:12px;animation:splashPop 0.5s cubic-bezier(.34,1.56,.64,1) both">💑</div>
+      <h1 class="ob-title" style="font-size:28px;margin-bottom:8px">Who's your partner?</h1>
+      <p class="ob-sub" style="margin-bottom:24px">You'll connect their account in a moment — for now just their name.</p>
+      <input class="ob-input" id="ob-partner" placeholder="Their first name"/>
+      <button class="btn btn-rose" onclick="obNext(3)">Continue →</button>
+    </div>
+
+    <!-- Step 4: Relationship start date -->
+    <div class="ob-step" id="ob-4">
+      <div style="font-size:56px;margin-bottom:12px;animation:splashPop 0.5s cubic-bezier(.34,1.56,.64,1) both">📅</div>
+      <h1 class="ob-title" style="font-size:28px;margin-bottom:8px">When did you two start?</h1>
+      <p class="ob-sub" style="margin-bottom:24px">We'll use this for your anniversary countdown and milestones.</p>
       <input class="ob-input" id="ob-date" type="date" style="text-align:center"/>
-      <p class="ob-hint" style="text-align:center;width:100%">Your relationship start date (optional)</p>
-      <button class="btn btn-rose" style="margin-top:12px;width:100%" onclick="obNext(3)">Plant your first seed 🌱</button>
+      <p class="ob-hint" style="text-align:center;width:100%;margin-bottom:16px">Optional — you can add this later</p>
+      <button class="btn btn-rose" style="width:100%" onclick="obNext(4)">Continue →</button>
+    </div>
+
+    <!-- Step 5: Plant your seed -->
+    <div class="ob-step" id="ob-5">
+      <div class="ob-plant-preview" id="ob-seed-anim"></div>
+      <h1 class="ob-title" style="font-size:28px;margin-bottom:8px">Meet your first plant</h1>
+      <p class="ob-sub" id="ob-plant-reveal-text" style="margin-bottom:24px">Water it every day to help it grow. It blooms into a beautiful flower after 30 days together.</p>
+      <div class="ob-feature-list" style="margin-bottom:20px">
+        <div class="ob-feature"><span class="ob-feature-icon">💧</span>Water once a day to keep it alive</div>
+        <div class="ob-feature"><span class="ob-feature-icon">⏰</span>It dies if neither of you waters within 24h</div>
+        <div class="ob-feature"><span class="ob-feature-icon">🌸</span>Fully grown at day 30 — joins your garden</div>
+      </div>
+      <button class="btn btn-sage" onclick="obNext(5)">Plant your first seed 🌱</button>
     </div>
 
     <div id="ob-dots" style="display:flex;gap:7px;margin-top:24px;justify-content:center">
       <span id="dot-0" style="width:22px;height:6px;border-radius:3px;background:var(--rose);transition:all .3s"></span>
       <span id="dot-1" style="width:6px;height:6px;border-radius:3px;background:var(--blush);transition:all .3s"></span>
       <span id="dot-2" style="width:6px;height:6px;border-radius:3px;background:var(--blush);transition:all .3s"></span>
+      <span id="dot-3" style="width:6px;height:6px;border-radius:3px;background:var(--blush);transition:all .3s"></span>
+      <span id="dot-4" style="width:6px;height:6px;border-radius:3px;background:var(--blush);transition:all .3s"></span>
     </div>
   </div>
 </div>
@@ -304,7 +465,29 @@ window.dispatchEvent(new Event('firebaseReady'));
   </div>
 </div>
 
+<!-- ─── COACH SHEET ─── -->
+<div id="coach-sheet">
+  <div class="coach-inner">
+    <div class="coach-header">
+      <h3>🤖 Spark coach</h3>
+      <button onclick="closeCoach()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--stone)">✕</button>
+    </div>
+    <div class="chat-messages" id="chat-messages" style="flex:1;overflow-y:auto;padding:16px 20px">
+      <div class="msg msg-ai fade-up">Hey! I'm your relationship coach. Ask me anything — date ideas, how to handle a tough conversation, what to do for a special occasion... I'm here to help 💕</div>
+    </div>
+    <div class="chat-input-row">
+      <textarea class="chat-input" id="chat-input" placeholder="Ask your coach..." rows="1"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"
+        oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+      <button class="chat-send" onclick="sendChat()" aria-label="Send">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- ─── PARTNER SETUP SHEET ─── -->
+
 <div id="partner-setup">
   <div class="api-sheet">
     <h3>Connect your partner 💑</h3>
@@ -533,28 +716,40 @@ window.dispatchEvent(new Event('firebaseReady'));
   </div>
 
 
-  <!-- AI COACH SCREEN -->
-  <div class="screen" id="screen-coach">
-    <div class="topbar" style="padding-bottom:8px">
+  <!-- NOTES SCREEN -->
+  <div class="screen" id="screen-notes">
+    <div class="topbar">
       <div>
-        <div class="topbar-title">Spark coach</div>
-        <div class="topbar-sub">Powered by Claude AI</div>
+        <div class="topbar-title">Love notes</div>
+        <div class="topbar-sub" id="notes-subtitle">Just between you two</div>
       </div>
-      <div class="topbar-avatar">🤖</div>
+      <div class="topbar-avatar" id="notes-unread" style="display:none;background:var(--rose);color:white;font-size:13px;font-weight:700">!</div>
     </div>
-    <div class="chat-wrap">
-      <div class="chat-messages" id="chat-messages">
-        <div class="msg msg-ai fade-up">
-          Hey! I'm your relationship coach. Ask me anything — date ideas, how to handle a tough conversation, what to do for a special occasion... I'm here to help 💕
+
+    <!-- Note composer -->
+    <div class="note-composer" id="note-composer">
+      <div class="note-style-row" id="note-style-row">
+        <button class="note-style-btn active" onclick="setNoteStyle('classic')" id="style-classic">🤍 Classic</button>
+        <button class="note-style-btn" onclick="setNoteStyle('rose')" id="style-rose">🌹 Rose</button>
+        <button class="note-style-btn" onclick="setNoteStyle('sage')" id="style-sage">🌿 Sage</button>
+        <button class="note-style-btn locked" onclick="showProModal()" id="style-gold">✦ Gold</button>
+        <button class="note-style-btn locked" onclick="showProModal()" id="style-night">✦ Night</button>
+      </div>
+      <div class="note-paper" id="note-paper">
+        <textarea class="note-textarea" id="note-input" placeholder="Write something sweet..." maxlength="280" oninput="updateNoteCount()"></textarea>
+        <div class="note-footer-row">
+          <span class="note-char-count" id="note-char-count">280</span>
+          <button class="btn btn-rose btn-sm" onclick="sendNote()" id="note-send-btn">Send 💌</button>
         </div>
       </div>
-      <div class="chat-input-row">
-        <textarea class="chat-input" id="chat-input" placeholder="Ask your coach..." rows="1"
-          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"
-          oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
-        <button class="chat-send" onclick="sendChat()" aria-label="Send">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        </button>
+    </div>
+
+    <!-- Notes timeline -->
+    <div class="scroll-body" id="notes-list" style="padding-top:8px">
+      <div class="empty" id="notes-empty" style="display:none">
+        <div class="empty-icon">💌</div>
+        <div class="empty-title">No notes yet</div>
+        <div class="empty-sub">Send your partner something sweet — they'll see it next time they open the app.</div>
       </div>
     </div>
   </div>
@@ -605,6 +800,7 @@ window.dispatchEvent(new Event('firebaseReady'));
       </div>
 
       <button class="btn btn-rose" onclick="showPartnerSetup()" style="margin-bottom:10px">💑 Connect your partner</button>
+      <button class="btn btn-ghost" onclick="showCoach()" style="margin-bottom:10px">🤖 Open AI relationship coach</button>
       <button class="btn btn-outline" onclick="resetApp()" style="margin-top:0px;color:#991B1B;border-color:#FECACA">Reset everything</button>
     </div>
   </div>
@@ -627,9 +823,9 @@ window.dispatchEvent(new Event('firebaseReady'));
       <span class="tab-icon">🎮</span>
       <span class="tab-label">Games</span>
     </button>
-    <button class="tab-btn" onclick="showScreen('coach')" id="tab-coach">
-      <span class="tab-icon">💬</span>
-      <span class="tab-label">Coach</span>
+    <button class="tab-btn" onclick="showScreen('notes')" id="tab-notes">
+      <span class="tab-icon">💌</span>
+      <span class="tab-label">Notes</span>
     </button>
   </nav>
 
@@ -647,7 +843,11 @@ let state = {
   garden: [],
   apiKey: '',
   isPro: false,
-  chatHistory: []
+  chatHistory: [],
+  milestones: [],
+  notes: [],
+  coupleId: null,
+  partnerConnected: false,
 };
 
 const PLANTS = [
@@ -905,23 +1105,43 @@ function load() {
 // ══════════════════════════════════════════
 let obStep = 0;
 function obNext(step) {
+  haptic();
   if (step === 1) {
+    // Welcome → name
+  } else if (step === 2) {
     const name = document.getElementById('ob-name').value.trim();
     if (!name) { document.getElementById('ob-name').style.borderColor = 'var(--rose)'; return; }
     state.myName = name;
-  } else if (step === 2) {
+  } else if (step === 3) {
     const name = document.getElementById('ob-partner').value.trim();
     if (!name) { document.getElementById('ob-partner').style.borderColor = 'var(--rose)'; return; }
     state.partnerName = name;
-  } else if (step === 3) {
+  } else if (step === 4) {
     const d = document.getElementById('ob-date').value;
     state.startDate = d || new Date().toISOString().split('T')[0];
+    // Show plant preview on step 5
+    const firstPlant = PLANTS[0];
+    const seedEl = document.getElementById('ob-seed-anim');
+    if (seedEl) {
+      const seedPlant = { ...firstPlant, dayCount: 3, isAlive: true };
+      seedEl.innerHTML = plantSVG(seedPlant, 130);
+    }
+    document.getElementById('ob-plant-reveal-text').textContent =
+      `Your first plant is a ${firstPlant.name}. Water it every day and watch it grow into something beautiful.`;
+  } else if (step === 5) {
     startApp();
     return;
   }
   obStep++;
   document.querySelectorAll('.ob-step').forEach(s => s.classList.remove('active'));
-  document.getElementById('ob-' + (step + 1)).classList.add('active');
+  const nextStep = document.getElementById('ob-' + (step + 1));
+  if (nextStep) {
+    nextStep.classList.add('active');
+    // Animate in
+    nextStep.style.animation = 'none';
+    void nextStep.offsetWidth;
+    nextStep.style.animation = 'fadeUp 0.35s ease';
+  }
   document.querySelectorAll('#ob-dots span').forEach((d,i) => {
     d.style.width = i === obStep ? '22px' : '6px';
     d.style.background = i === obStep ? 'var(--rose)' : 'var(--blush)';
@@ -934,10 +1154,10 @@ function startApp() {
   document.getElementById('onboarding').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
   refreshAll();
-  // Ask about API key after a moment
+  // Prompt to connect partner after short delay
   setTimeout(() => {
-    if (!state.apiKey) showApiSetup();
-  }, 1500);
+    if (!state.coupleId) showPartnerSetup();
+  }, 2000);
 }
 
 // ══════════════════════════════════════════
@@ -1099,6 +1319,14 @@ function growCelebration(wrapId) {
 
 function haptic() {
   if (navigator.vibrate) navigator.vibrate([10, 30, 10]);
+}
+
+function showToast(msg, color = 'var(--ink)') {
+  const t = document.createElement('div');
+  t.style.cssText = `position:fixed;top:60px;left:50%;transform:translateX(-50%);background:${color};color:white;padding:14px 22px;border-radius:30px;font-weight:700;font-size:14px;z-index:9999;animation:fadeUp .3s ease;max-width:320px;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,0.2)`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
 }
 
 function showCelebration() {
@@ -1515,10 +1743,98 @@ function showTruthOrDare(kind) {
 function refreshUs() {
   document.getElementById('us-names-big').textContent = `${state.myName || 'You'} & ${state.partnerName || 'Partner'}`;
   document.getElementById('us-couple-names').textContent = `${state.myName || ''} & ${state.partnerName || ''}`;
-  document.getElementById('us-since').textContent = state.startDate ? `Together since ${new Date(state.startDate).toLocaleDateString('en-GB', { month:'long', year:'numeric' })}` : '';
+  document.getElementById('us-since').textContent = state.startDate ? `Together since ${new Date(state.startDate).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' })}` : '';
   document.getElementById('set-myname').textContent = state.myName || '—';
   document.getElementById('set-partnername').textContent = state.partnerName || '—';
   document.getElementById('set-apikey').textContent = state.apiKey ? '✅ Connected' : 'Tap to set';
+  refreshMilestones();
+}
+
+// ══════════════════════════════════════════
+//  MILESTONES
+// ══════════════════════════════════════════
+const AUTO_MILESTONES = [
+  { id: 'week1',   label: 'One week together',    days: 7,    emoji: '🌱' },
+  { id: 'month1',  label: 'One month together',   days: 30,   emoji: '🌸' },
+  { id: 'days50',  label: '50 days together',     days: 50,   emoji: '✨' },
+  { id: 'days100', label: '100 days together',    days: 100,  emoji: '💯' },
+  { id: 'days200', label: '200 days together',    days: 200,  emoji: '🌟' },
+  { id: 'year1',   label: 'One year together',    days: 365,  emoji: '🎉' },
+  { id: 'year2',   label: 'Two years together',   days: 730,  emoji: '💑' },
+  { id: 'year3',   label: 'Three years together', days: 1095, emoji: '👑' },
+  { id: 'year5',   label: 'Five years together',  days: 1825, emoji: '💎' },
+];
+
+function getDaysTogether() {
+  if (!state.startDate) return 0;
+  return Math.floor((Date.now() - new Date(state.startDate).getTime()) / 86400000);
+}
+
+function getMilestoneDate(days) {
+  if (!state.startDate) return null;
+  const d = new Date(new Date(state.startDate).getTime() + days * 86400000);
+  return d;
+}
+
+function refreshMilestones() {
+  const el = document.getElementById('milestones-list');
+  if (!el) return;
+  const daysTogether = getDaysTogether();
+  const custom = state.milestones || [];
+
+  const autoItems = AUTO_MILESTONES.map(m => {
+    const achieved = daysTogether >= m.days;
+    const date = getMilestoneDate(m.days);
+    const daysLeft = m.days - daysTogether;
+    return { ...m, achieved, date, daysLeft, type: 'auto' };
+  });
+
+  const customItems = custom.map(m => ({
+    ...m, type: 'custom', achieved: m.date ? new Date(m.date) <= new Date() : false
+  }));
+
+  const all = [...autoItems, ...customItems].sort((a, b) => {
+    const dA = a.type === 'auto' ? a.days : (a.date ? Math.floor((new Date(a.date) - new Date(state.startDate)) / 86400000) : 9999);
+    const dB = b.type === 'auto' ? b.days : (b.date ? Math.floor((new Date(b.date) - new Date(state.startDate)) / 86400000) : 9999);
+    return dA - dB;
+  });
+
+  // Show next 5 upcoming + all achieved
+  const achieved = all.filter(m => m.achieved);
+  const upcoming = all.filter(m => !m.achieved).slice(0, 5);
+  const display = [...achieved.slice(-3), ...upcoming];
+
+  if (display.length === 0) {
+    el.innerHTML = '<div style="font-size:13px;color:var(--stone);padding:12px 0">Add your relationship start date to see milestones.</div>';
+    return;
+  }
+
+  el.innerHTML = display.map(m => {
+    const dateStr = m.date ? new Date(m.date).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }) : m.dateLabel || '';
+    return `<div class="milestone-item">
+      <div class="milestone-dot ${m.achieved ? (m.type === 'custom' ? 'custom' : 'achieved') : 'upcoming'}">${m.emoji}</div>
+      <div class="milestone-content">
+        <div class="milestone-title">${m.label}</div>
+        <div class="milestone-date">${dateStr}</div>
+        ${m.achieved
+          ? `<span class="milestone-achieved-badge">✅ Achieved</span>`
+          : `<div class="milestone-countdown">${m.daysLeft !== undefined ? `${m.daysLeft} days to go` : ''}</div>`
+        }
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function showAddMilestone() {
+  const label = prompt('Name your milestone (e.g. "Moved in together"):');
+  if (!label) return;
+  const dateStr = prompt('Date (YYYY-MM-DD format):');
+  if (!dateStr) return;
+  const emoji = prompt('Pick an emoji for it:') || '⭐';
+  if (!state.milestones) state.milestones = [];
+  state.milestones.push({ id: Date.now().toString(), label, date: dateStr, emoji, dateLabel: new Date(dateStr).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' }) });
+  save();
+  refreshMilestones();
 }
 
 // ══════════════════════════════════════════
@@ -1556,7 +1872,152 @@ function showScreen(name) {
   if (name === 'garden') refreshGarden();
   if (name === 'games') refreshGames();
   if (name === 'us') refreshUs();
+  if (name === 'notes') refreshNotes();
 }
+
+// ══════════════════════════════════════════
+//  COACH SHEET
+// ══════════════════════════════════════════
+function showCoach() { haptic(); document.getElementById('coach-sheet').classList.add('show'); }
+function closeCoach() { document.getElementById('coach-sheet').classList.remove('show'); }
+
+// ══════════════════════════════════════════
+//  LOVE NOTES
+// ══════════════════════════════════════════
+const NOTE_REACTIONS = ['❤️','😊','🥹','😂','😘','🌹'];
+let currentNoteStyle = 'classic';
+let notesUnsubscribe = null;
+
+function setNoteStyle(style) {
+  haptic();
+  currentNoteStyle = style;
+  document.querySelectorAll('.note-style-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('style-' + style).classList.add('active');
+  const paper = document.getElementById('note-paper');
+  paper.className = 'note-paper style-' + style;
+}
+
+function updateNoteCount() {
+  const val = document.getElementById('note-input').value.length;
+  const el = document.getElementById('note-char-count');
+  el.textContent = 280 - val;
+  el.style.color = val > 250 ? 'var(--rose)' : 'var(--stone)';
+}
+
+async function sendNote() {
+  const input = document.getElementById('note-input');
+  const text = input.value.trim();
+  if (!text) return;
+  if (!state.coupleId) {
+    showToast('Connect your partner first in the Us tab 💑');
+    return;
+  }
+  haptic();
+  const note = {
+    id: Date.now().toString(),
+    text,
+    style: currentNoteStyle,
+    sender: state.myName,
+    sentAt: new Date().toISOString(),
+    reaction: null,
+    read: false,
+  };
+  // Save to Firebase
+  if (window._firebaseReady) {
+    const { doc, updateDoc } = window._fbFns;
+    const { arrayUnion } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    try {
+      await updateDoc(doc(window._db, 'couples', state.coupleId), {
+        notes: arrayUnion(note),
+      });
+    } catch(e) {
+      // Fallback to local
+      if (!state.notes) state.notes = [];
+      state.notes.push(note);
+      save();
+    }
+  } else {
+    if (!state.notes) state.notes = [];
+    state.notes.push(note);
+    save();
+  }
+  input.value = '';
+  updateNoteCount();
+  // Animate send
+  const btn = document.getElementById('note-send-btn');
+  btn.textContent = 'Sent! 💌';
+  setTimeout(() => btn.textContent = 'Send 💌', 2000);
+  // Celebration
+  const paper = document.getElementById('note-paper');
+  paper.classList.add('pop');
+  setTimeout(() => paper.classList.remove('pop'), 400);
+  refreshNotes();
+}
+
+async function reactToNote(noteId, emoji) {
+  haptic();
+  if (!window._firebaseReady || !state.coupleId) return;
+  // Update the reaction on matching note in Firebase
+  const { doc, getDoc, updateDoc } = window._fbFns;
+  try {
+    const snap = await getDoc(doc(window._db, 'couples', state.coupleId));
+    if (!snap.exists()) return;
+    const notes = snap.data().notes || [];
+    const updated = notes.map(n => n.id === noteId ? { ...n, reaction: emoji } : n);
+    await updateDoc(doc(window._db, 'couples', state.coupleId), { notes: updated });
+  } catch(e) { console.error(e); }
+}
+
+function refreshNotes() {
+  const list = document.getElementById('notes-list');
+  const empty = document.getElementById('notes-empty');
+  // Get notes from Firebase state (synced via onSnapshot) or local
+  const notes = (window._coupleData && window._coupleData.notes) || state.notes || [];
+  // Check for unread notes from partner
+  const unread = notes.filter(n => n.sender !== state.myName && !n.reaction);
+  const unreadEl = document.getElementById('notes-unread');
+  if (unread.length > 0) {
+    unreadEl.style.display = 'flex';
+    unreadEl.textContent = unread.length;
+  } else {
+    unreadEl.style.display = 'none';
+  }
+  document.getElementById('notes-subtitle').textContent =
+    notes.length > 0 ? `${notes.length} note${notes.length !== 1 ? 's' : ''} between you` : 'Just between you two';
+  if (notes.length === 0) {
+    empty.style.display = 'block';
+    list.innerHTML = '';
+    list.appendChild(empty);
+    return;
+  }
+  empty.style.display = 'none';
+  // Render newest first
+  const sorted = [...notes].reverse();
+  list.innerHTML = sorted.map(note => {
+    const mine = note.sender === state.myName;
+    const time = note.sentAt ? new Date(note.sentAt).toLocaleDateString('en-GB', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : '';
+    const reactionButtons = mine ? '' : `
+      <div class="note-reactions">
+        ${NOTE_REACTIONS.map(e => `
+          <button class="note-react-btn ${note.reaction === e ? 'active' : ''}"
+            onclick="reactToNote('${note.id}','${e}')" aria-label="React with ${e}">${e}</button>
+        `).join('')}
+      </div>`;
+    const reactionDisplay = note.reaction ? `<div class="note-reaction-display" style="margin-top:6px">${note.reaction}</div>` : '';
+    return `<div class="note-bubble ${mine ? 'mine' : 'theirs'} style-${note.style || 'classic'}">
+      <div class="note-text">${note.text}</div>
+      ${reactionDisplay}
+      <div class="note-meta">
+        <span class="note-sender">${note.sender}${!mine && !note.reaction ? '<span class="note-unread-dot"></span>' : ''}</span>
+        <span class="note-time">${time}</span>
+      </div>
+      ${reactionButtons}
+    </div>`;
+  }).join('');
+}
+
+// Store couple data globally so notes can read it
+window._coupleData = null;
 
 // ══════════════════════════════════════════
 //  CLAUDE AI CHAT
@@ -1672,14 +2133,24 @@ function resetApp() {
 // ══════════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════════
+function dismissSplash() {
+  const splash = document.getElementById('splash');
+  if (!splash) return;
+  splash.classList.add('hidden');
+  setTimeout(() => splash.remove(), 600);
+}
+
 load();
 if (state.myName) {
   document.getElementById('onboarding').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
   refreshAll();
+  // Short splash for returning users — feels premium
+  setTimeout(dismissSplash, 1400);
 } else {
-  // Set default date for onboarding
+  // New user — show splash briefly then reveal onboarding
   document.getElementById('ob-date').value = new Date().toISOString().split('T')[0];
+  setTimeout(dismissSplash, 1800);
 }
 
 // Auto-refresh plant status every minute
@@ -1712,6 +2183,7 @@ async function initFirebaseSync() {
   unsubscribeSync = onSnapshot(doc(db, 'couples', state.coupleId), (snap) => {
     if (!snap.exists()) return;
     const remote = snap.data();
+    window._coupleData = remote;
     // Merge remote state into local — remote wins for shared data
     if (remote.currentPlant) state.currentPlant = remote.currentPlant;
     if (remote.garden) state.garden = remote.garden;
@@ -1724,6 +2196,17 @@ async function initFirebaseSync() {
       document.getElementById('partner-joined').style.display = 'flex';
       document.getElementById('set-partner-status').textContent = '✅ Connected';
       document.getElementById('set-partner-status').style.color = 'var(--sage)';
+    }
+    // Refresh notes if we're on that screen
+    const notesScreen = document.getElementById('screen-notes');
+    if (notesScreen && notesScreen.classList.contains('active')) refreshNotes();
+    // Show unread dot on notes tab if there are unread notes
+    const notes = remote.notes || [];
+    const hasUnread = notes.some(n => n.sender !== state.myName && !n.reaction);
+    const unreadEl = document.getElementById('notes-unread');
+    if (unreadEl) {
+      unreadEl.style.display = hasUnread ? 'flex' : 'none';
+      if (hasUnread) unreadEl.textContent = notes.filter(n => n.sender !== state.myName && !n.reaction).length;
     }
     save();
     refreshAll();
@@ -1765,7 +2248,7 @@ function showPartnerSetup() {
     // Create the couple document in Firebase
     if (window._firebaseReady) {
       const { doc, setDoc } = window._fbFns;
-      setDoc(window._db, doc(window._db, 'couples', state.coupleId), {
+      setDoc(doc(window._db, 'couples', state.coupleId), {
         currentPlant: state.currentPlant || null,
         garden: state.garden || [],
         creatorName: state.myName,
@@ -1774,6 +2257,7 @@ function showPartnerSetup() {
         partnerConnected: false,
       });
       initFirebaseSync();
+      setTimeout(maybeRequestNotifications, 1000);
     }
   }
   document.getElementById('invite-code-display').textContent = state.coupleId;
@@ -1833,6 +2317,7 @@ async function joinWithCode() {
     initFirebaseSync();
     closePartnerSetup();
     refreshAll();
+    maybeRequestNotifications();
     // Toast
     const t = document.createElement('div');
     t.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);background:var(--sage);color:white;padding:14px 22px;border-radius:30px;font-weight:700;font-size:15px;z-index:9999;animation:fadeUp .3s ease';
@@ -1851,7 +2336,78 @@ if (state.coupleId) {
   if (window._firebaseReady) initFirebaseSync();
 }
 
+// ══════════════════════════════════════════
+//  PUSH NOTIFICATIONS (FCM)
+// ══════════════════════════════════════════
+// VAPID key from Firebase console → Project settings → Cloud Messaging → Web Push certificates
+const VAPID_KEY = 'YOUR_VAPID_KEY_HERE';
+
+async function requestNotificationPermission() {
+  if (!('Notification' in window)) return;
+  if (!window._firebaseReady) return;
+  try {
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') return;
+    await registerFCMToken();
+  } catch(e) {
+    console.log('Notification permission error:', e);
+  }
+}
+
+async function registerFCMToken() {
+  if (!window._messaging || !state.coupleId) return;
+  try {
+    // Register the service worker first
+    const swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+    const { getToken } = window._fbFns;
+    const token = await getToken(window._messaging, {
+      vapidKey: VAPID_KEY,
+      serviceWorkerRegistration: swReg,
+    });
+    if (!token) return;
+    // Save token to Firebase so Cloud Function can reach this device
+    const { doc, updateDoc } = window._fbFns;
+    await updateDoc(doc(window._db, 'couples', state.coupleId), {
+      fcmTokens: (await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js'))
+        .arrayUnion(token),
+    });
+    console.log('FCM token registered');
+  } catch(e) {
+    console.log('FCM token error:', e);
+  }
+}
+
+// Handle foreground notifications (app is open)
+function initForegroundNotifications() {
+  if (!window._messaging) return;
+  const { onMessage } = window._fbFns;
+  onMessage(window._messaging, (payload) => {
+    const { title, body } = payload.notification || {};
+    if (!title) return;
+    // Show in-app toast instead of system notification when app is open
+    const t = document.createElement('div');
+    t.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);background:var(--ink);color:white;padding:14px 20px;border-radius:30px;font-weight:600;font-size:14px;z-index:9999;animation:fadeUp .3s ease;max-width:320px;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,0.2)';
+    t.textContent = `${title} — ${body}`;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 4000);
+  });
+}
+
+// Request permission after user is set up and has a couple connected
+function maybeRequestNotifications() {
+  if (state.coupleId && Notification.permission === 'default') {
+    setTimeout(requestNotificationPermission, 2000);
+  }
+}
+
+window.addEventListener('firebaseReady', () => {
+  initForegroundNotifications();
+  if (state.coupleId) maybeRequestNotifications();
+}, { once: true });
+
+
 </script>
 </body>
 </html>
+
 
