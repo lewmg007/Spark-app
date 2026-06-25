@@ -840,10 +840,6 @@ window.dispatchEvent(new Event('firebaseReady'));
           <div class="setting-label">Partner sync</div>
           <div class="setting-val" id="set-partner-status" style="cursor:pointer;color:var(--rose)" onclick="showPartnerSetup()">Tap to connect</div>
         </div>
-        <div class="setting-row">
-          <div class="setting-label">Claude AI key</div>
-          <div class="setting-val" id="set-apikey" style="cursor:pointer;color:var(--rose)" onclick="showApiSetup()">Tap to set</div>
-        </div>
         <div class="setting-row" style="border-bottom:none">
           <div class="setting-label">Notifications</div>
           <div class="setting-val">On</div>
@@ -1794,7 +1790,6 @@ function refreshUs() {
   document.getElementById('us-since').textContent = state.startDate ? `Together since ${new Date(state.startDate).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' })}` : '';
   document.getElementById('set-myname').textContent = state.myName || '—';
   document.getElementById('set-partnername').textContent = state.partnerName || '—';
-  document.getElementById('set-apikey').textContent = state.apiKey ? '✅ Connected' : 'Tap to set';
   refreshMilestones();
 }
 
@@ -1944,10 +1939,6 @@ function selectChip(el, type, value) {
 }
 
 async function planDate() {
-  if (!state.apiKey) {
-    showToast('Add your Claude AI key in the Us tab first ✨', 'var(--rose)');
-    return;
-  }
   haptic();
   const btn = document.getElementById('plan-date-btn');
   const resultEl = document.getElementById('date-result');
@@ -1976,18 +1967,12 @@ Give them 1 specific, creative, detailed date idea that matches these preference
 Keep it warm, fun and practical. Format it nicely with line breaks. No bullet points — write it conversationally as if you're a friend suggesting it.`;
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('/.netlify/functions/claude', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': state.apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
+        messages: [{ role: 'user', content: prompt }],
         max_tokens: 600,
-        messages: [{ role: 'user', content: prompt }]
       })
     });
     const data = await response.json();
@@ -1997,7 +1982,7 @@ Keep it warm, fun and practical. Format it nicely with line breaks. No bullet po
       resultEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   } catch(e) {
-    showToast('Could not connect to Claude — check your API key', 'var(--rose)');
+    showToast('Could not connect — please try again in a moment', 'var(--rose)');
   } finally {
     btn.innerHTML = 'Plan our date ✨';
     btn.disabled = false;
@@ -2148,7 +2133,6 @@ async function sendChat() {
   const input = document.getElementById('chat-input');
   const msg = input.value.trim();
   if (!msg) return;
-  if (!state.apiKey) { showApiSetup(); return; }
 
   haptic();
   input.value = '';
@@ -2162,19 +2146,13 @@ async function sendChat() {
   const typing = appendTyping();
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('/.netlify/functions/claude', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': state.apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 500,
         system: `You are Spark, a warm and supportive relationship coach inside a couples app. You're helping ${state.myName || 'the user'} and ${state.partnerName || 'their partner'} grow their relationship. Be encouraging, practical, and fun. Keep responses concise (2-4 sentences). Use the occasional emoji. Never be preachy.`,
-        messages: state.chatHistory
+        messages: state.chatHistory,
+        max_tokens: 500,
       })
     });
 
