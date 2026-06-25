@@ -20,7 +20,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, onSnapshot, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, onSnapshot, updateDoc, serverTimestamp, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
 
 const firebaseConfig = {
@@ -37,7 +37,7 @@ const db = getFirestore(fbApp);
 const messaging = getMessaging(fbApp);
 window._db = db;
 window._messaging = messaging;
-window._fbFns = { doc, setDoc, getDoc, onSnapshot, updateDoc, serverTimestamp, getToken, onMessage };
+window._fbFns = { doc, setDoc, getDoc, onSnapshot, updateDoc, serverTimestamp, getToken, onMessage, arrayUnion, arrayRemove };
 window._firebaseReady = true;
 window.dispatchEvent(new Event('firebaseReady'));
 </script>
@@ -233,6 +233,14 @@ window.dispatchEvent(new Event('firebaseReady'));
   .ob-feature { display: flex; align-items: center; gap: 10px; padding: 7px 0; font-size: 13px; font-weight: 600; color: var(--ink); border-bottom: 0.5px solid var(--border); }
   .ob-feature:last-child { border-bottom: none; }
   .ob-feature-icon { font-size: 20px; width: 28px; text-align: center; flex-shrink: 0; }
+
+  /* ── Date night planner ── */
+  .date-picker-row { display: flex; flex-direction: column; gap: 6px; }
+  .date-picker-label { font-size: 11px; font-weight: 700; color: var(--stone); text-transform: uppercase; letter-spacing: 0.05em; }
+  .date-chips { display: flex; gap: 7px; flex-wrap: wrap; }
+  .date-chip { padding: 7px 12px; border-radius: 20px; border: 1.5px solid var(--border); background: var(--cream-deep); font-family: var(--font); font-size: 12px; font-weight: 600; color: var(--ink); cursor: pointer; transition: all 0.15s; }
+  .date-chip.active { background: var(--ink); color: white; border-color: var(--ink); }
+  .date-chip:active { transform: scale(0.94); }
 
   /* ── Love notes ── */
   .note-composer { padding: 14px 20px 0; flex-shrink: 0; }
@@ -568,6 +576,45 @@ window.dispatchEvent(new Event('firebaseReady'));
         </div>
       </div>
 
+      <!-- Date night planner -->
+      <div class="section-head">Date night planner ✨</div>
+      <div class="card" id="date-planner-card">
+        <div style="font-size:13px;color:var(--stone);margin-bottom:14px;font-weight:500">Tell us your mood and budget — Claude will plan your perfect date.</div>
+        <div class="date-picker-row">
+          <div class="date-picker-label">Mood</div>
+          <div class="date-chips" id="mood-chips">
+            <button class="date-chip active" onclick="selectChip(this,'mood','cosy')">🛋️ Cosy</button>
+            <button class="date-chip" onclick="selectChip(this,'mood','adventurous')">🏕️ Adventurous</button>
+            <button class="date-chip" onclick="selectChip(this,'mood','romantic')">🕯️ Romantic</button>
+            <button class="date-chip" onclick="selectChip(this,'mood','fun')">🎉 Fun</button>
+            <button class="date-chip" onclick="selectChip(this,'mood','relaxed')">😌 Relaxed</button>
+          </div>
+        </div>
+        <div class="date-picker-row" style="margin-top:10px">
+          <div class="date-picker-label">Budget</div>
+          <div class="date-chips" id="budget-chips">
+            <button class="date-chip active" onclick="selectChip(this,'budget','free')">💚 Free</button>
+            <button class="date-chip" onclick="selectChip(this,'budget','cheap')">💛 Under £20</button>
+            <button class="date-chip" onclick="selectChip(this,'budget','mid')">🧡 £20–£60</button>
+            <button class="date-chip" onclick="selectChip(this,'budget','splurge')">❤️ Splurge</button>
+          </div>
+        </div>
+        <div class="date-picker-row" style="margin-top:10px">
+          <div class="date-picker-label">Setting</div>
+          <div class="date-chips" id="setting-chips">
+            <button class="date-chip active" onclick="selectChip(this,'setting','at home')">🏠 At home</button>
+            <button class="date-chip" onclick="selectChip(this,'setting','out and about')">🌆 Out & about</button>
+            <button class="date-chip" onclick="selectChip(this,'setting','nature')">🌳 Nature</button>
+          </div>
+        </div>
+        <button class="btn btn-rose" onclick="planDate()" style="margin-top:14px" id="plan-date-btn">Plan our date ✨</button>
+        <div id="date-result" style="display:none;margin-top:14px">
+          <div style="height:0.5px;background:var(--border);margin-bottom:12px"></div>
+          <div id="date-result-text" style="font-family:var(--font-display);font-size:15px;color:var(--ink);line-height:1.7"></div>
+          <button class="btn btn-outline" onclick="planDate()" style="margin-top:12px;font-size:13px">Try another ↻</button>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -663,39 +710,33 @@ window.dispatchEvent(new Event('firebaseReady'));
         <button class="game-tile" onclick="openGame('wyr')">
           <span class="game-tile-icon">🤔</span>
           <span class="game-tile-name">Would You Rather</span>
-          <span class="game-tile-count" id="count-wyr">— prompts</span>
         </button>
         <button class="game-tile" onclick="openGame('daily')">
           <span class="game-tile-icon">💬</span>
           <span class="game-tile-name">Daily Questions</span>
-          <span class="game-tile-count" id="count-daily">— prompts</span>
         </button>
         <button class="game-tile" onclick="openGame('thisthat')">
           <span class="game-tile-icon">⚡</span>
           <span class="game-tile-name">This or That</span>
-          <span class="game-tile-count" id="count-thisthat">— prompts</span>
         </button>
         <button class="game-tile locked" onclick="openGame('dare')">
           <span class="game-tile-icon">🎯</span>
           <span class="game-tile-name">Truth or Dare</span>
-          <span class="game-tile-count">Pro</span>
         </button>
         <button class="game-tile locked" onclick="openGame('memory')">
           <span class="game-tile-icon">🧠</span>
           <span class="game-tile-name">Memory Quiz</span>
-          <span class="game-tile-count">Pro</span>
         </button>
         <button class="game-tile locked" onclick="openGame('deep')">
           <span class="game-tile-icon">🕯️</span>
           <span class="game-tile-name">36 Questions</span>
-          <span class="game-tile-count">Pro</span>
         </button>
       </div>
 
       <div class="pro-lock">
         <div style="font-size:28px;margin-bottom:8px">🔐</div>
         <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:4px">Unlock 3 more games</div>
-        <div style="font-size:13px;color:var(--stone);margin-bottom:14px">Truth or Dare, Memory Quiz, and the famous 36 Questions to Fall in Love — plus every game gets extra Pro-only prompts</div>
+        <div style="font-size:13px;color:var(--stone);margin-bottom:14px">Truth or Dare, Memory Quiz, and the famous 36 Questions to Fall in Love — plus every game gets extra Pro-only questions</div>
         <button class="btn btn-rose btn-sm" onclick="showProModal()">Upgrade to Spark Pro</button>
       </div>
     </div>
@@ -775,6 +816,16 @@ window.dispatchEvent(new Event('firebaseReady'));
         <button class="btn btn-white btn-sm" onclick="showProModal()">Start free trial — £3.99/mo</button>
       </div>
 
+      <div class="section-head">Milestones</div>
+      <div class="card" style="padding:8px 18px">
+        <div class="milestone-timeline" id="milestones-list">
+          <div style="font-size:13px;color:var(--stone);padding:12px 0">Loading milestones...</div>
+        </div>
+        <button class="add-milestone-btn" onclick="showAddMilestone()">
+          <span style="font-size:20px">＋</span> Add a milestone
+        </button>
+      </div>
+
       <div class="section-head">Settings</div>
       <div class="card">
         <div class="setting-row">
@@ -815,10 +866,6 @@ window.dispatchEvent(new Event('firebaseReady'));
       <span class="tab-icon">🌱</span>
       <span class="tab-label">Plant</span>
     </button>
-    <button class="tab-btn" onclick="showScreen('garden')" id="tab-garden">
-      <span class="tab-icon">🌻</span>
-      <span class="tab-label">Garden</span>
-    </button>
     <button class="tab-btn" onclick="showScreen('games')" id="tab-games">
       <span class="tab-icon">🎮</span>
       <span class="tab-label">Games</span>
@@ -826,6 +873,10 @@ window.dispatchEvent(new Event('firebaseReady'));
     <button class="tab-btn" onclick="showScreen('notes')" id="tab-notes">
       <span class="tab-icon">💌</span>
       <span class="tab-label">Notes</span>
+    </button>
+    <button class="tab-btn" onclick="showScreen('us')" id="tab-us">
+      <span class="tab-icon">👤</span>
+      <span class="tab-label">Us</span>
     </button>
   </nav>
 
@@ -1631,9 +1682,6 @@ let activeGame = null;
 let gameRecentIdx = [];
 
 function refreshGames() {
-  document.getElementById('count-wyr').textContent = `${GAME_CONFIG.wyr.getDeck().length} prompts`;
-  document.getElementById('count-daily').textContent = `${GAME_CONFIG.daily.getDeck().length} prompts`;
-  document.getElementById('count-thisthat').textContent = `${GAME_CONFIG.thisthat.getDeck().length} prompts`;
   document.querySelectorAll('#game-picker .game-tile').forEach(tile => {});
   // Update lock state on Pro tiles
   ['dare','memory','deep'].forEach(key => {
@@ -1705,7 +1753,7 @@ function nextGamePrompt() {
   }
 
   const deckLen = deck.length;
-  document.getElementById('game-progress-row').textContent = `${deckLen} prompts in this deck${cfg.pro || activeGame==='wyr' || activeGame==='daily' ? (state.isPro ? ' · Pro unlocked ✦' : '') : ''}`;
+  document.getElementById('game-progress-row').textContent = '';
 }
 
 function pickChoice(text) {
@@ -1865,8 +1913,10 @@ function showScreen(name) {
   haptic();
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('screen-' + name).classList.add('active');
-  document.getElementById('tab-' + name).classList.add('active');
+  const screen = document.getElementById('screen-' + name);
+  if (screen) screen.classList.add('active');
+  const tab = document.getElementById('tab-' + name);
+  if (tab) tab.classList.add('active');
   // Refresh on navigate
   if (name === 'plant') refreshPlantScreen();
   if (name === 'garden') refreshGarden();
@@ -1880,6 +1930,79 @@ function showScreen(name) {
 // ══════════════════════════════════════════
 function showCoach() { haptic(); document.getElementById('coach-sheet').classList.add('show'); }
 function closeCoach() { document.getElementById('coach-sheet').classList.remove('show'); }
+
+// ══════════════════════════════════════════
+//  DATE NIGHT PLANNER
+// ══════════════════════════════════════════
+const datePickerState = { mood: 'cosy', budget: 'free', setting: 'at home' };
+
+function selectChip(el, type, value) {
+  haptic();
+  datePickerState[type] = value;
+  el.closest('.date-chips').querySelectorAll('.date-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+}
+
+async function planDate() {
+  if (!state.apiKey) {
+    showToast('Add your Claude AI key in the Us tab first ✨', 'var(--rose)');
+    return;
+  }
+  haptic();
+  const btn = document.getElementById('plan-date-btn');
+  const resultEl = document.getElementById('date-result');
+  const resultText = document.getElementById('date-result-text');
+  btn.innerHTML = '✨ Planning...';
+  btn.disabled = true;
+  resultEl.style.display = 'none';
+
+  const { mood, budget, setting } = datePickerState;
+  const daysTogether = getDaysTogether();
+  const plantsGrown = state.garden.filter(g => g.grew).length;
+
+  const prompt = `Plan a perfect date night for a couple. Here are their preferences:
+- Mood: ${mood}
+- Budget: ${budget}
+- Setting: ${setting}
+- Days together: ${daysTogether}
+- Plants grown together in their app: ${plantsGrown}
+
+Give them 1 specific, creative, detailed date idea that matches these preferences exactly. Include:
+- A catchy name for the date
+- Step by step what to do (3-5 steps)
+- One small personal touch that makes it feel special
+- An estimated time
+
+Keep it warm, fun and practical. Format it nicely with line breaks. No bullet points — write it conversationally as if you're a friend suggesting it.`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': state.apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 600,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await response.json();
+    if (data.content && data.content[0]) {
+      resultText.textContent = data.content[0].text;
+      resultEl.style.display = 'block';
+      resultEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  } catch(e) {
+    showToast('Could not connect to Claude — check your API key', 'var(--rose)');
+  } finally {
+    btn.innerHTML = 'Plan our date ✨';
+    btn.disabled = false;
+  }
+}
 
 // ══════════════════════════════════════════
 //  LOVE NOTES
@@ -1924,8 +2047,7 @@ async function sendNote() {
   };
   // Save to Firebase
   if (window._firebaseReady) {
-    const { doc, updateDoc } = window._fbFns;
-    const { arrayUnion } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const { doc, updateDoc, arrayUnion } = window._fbFns;
     try {
       await updateDoc(doc(window._db, 'couples', state.coupleId), {
         notes: arrayUnion(note),
@@ -2137,7 +2259,15 @@ function dismissSplash() {
   const splash = document.getElementById('splash');
   if (!splash) return;
   splash.classList.add('hidden');
-  setTimeout(() => splash.remove(), 600);
+  setTimeout(() => {
+    splash.remove();
+    // Render animated plant on welcome screen step 1
+    const obPlant = document.getElementById('ob-plant-anim');
+    if (obPlant && !state.myName) {
+      const previewPlant = { ...PLANTS[0], dayCount: 28, isAlive: true };
+      obPlant.innerHTML = plantSVG(previewPlant, 130);
+    }
+  }, 600);
 }
 
 load();
@@ -2187,8 +2317,13 @@ async function initFirebaseSync() {
     // Merge remote state into local — remote wins for shared data
     if (remote.currentPlant) state.currentPlant = remote.currentPlant;
     if (remote.garden) state.garden = remote.garden;
-    if (remote.partnerName && !state.partnerName) {
-      state.partnerName = remote.partnerName;
+    if (remote.partnerName && remote.partnerName !== state.myName && !state.partnerConnected) {
+      // Creator seeing joiner's name for first time
+      state.partnerName = remote.joinerName || remote.partnerName;
+    }
+    if (remote.creatorName && remote.creatorName !== state.myName && state.partnerConnected) {
+      // Joiner seeing creator's name
+      state.partnerName = remote.creatorName;
     }
     if (remote.partnerConnected) {
       state.partnerConnected = true;
@@ -2306,13 +2441,15 @@ async function joinWithCode() {
     state.coupleId = code;
     state.currentPlant = data.currentPlant || state.currentPlant;
     state.garden = data.garden || [];
+    // Creator's name becomes this user's partner name
     if (data.creatorName) state.partnerName = data.creatorName;
     state.partnerConnected = true;
     save();
-    // Update the couple doc so the creator knows someone joined
+    // Update the couple doc — write joiner name clearly so creator sees it
     await updateDoc(doc(db, 'couples', code), {
       partnerConnected: true,
-      partnerName: state.myName,
+      partnerName: state.myName,   // joiner's name → creator reads this
+      joinerName: state.myName,    // explicit field so no ambiguity
     });
     initFirebaseSync();
     closePartnerSetup();
@@ -2366,10 +2503,9 @@ async function registerFCMToken() {
     });
     if (!token) return;
     // Save token to Firebase so Cloud Function can reach this device
-    const { doc, updateDoc } = window._fbFns;
+    const { doc, updateDoc, arrayUnion } = window._fbFns;
     await updateDoc(doc(window._db, 'couples', state.coupleId), {
-      fcmTokens: (await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js'))
-        .arrayUnion(token),
+      fcmTokens: arrayUnion(token),
     });
     console.log('FCM token registered');
   } catch(e) {
@@ -2409,5 +2545,3 @@ window.addEventListener('firebaseReady', () => {
 </script>
 </body>
 </html>
-
-
