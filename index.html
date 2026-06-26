@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <meta name="theme-color" content="#FAF5EE"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
@@ -623,7 +623,7 @@ window.dispatchEvent(new Event('firebaseReady'));
     <div class="topbar">
       <div>
         <div class="topbar-title">Your plant</div>
-        <div class="topbar-sub">Care for it every day</div>
+        <div class="topbar-sub" id="plant-topbar-sub">Care for it every day</div>
       </div>
     </div>
     <div class="scroll-body">
@@ -768,6 +768,10 @@ window.dispatchEvent(new Event('firebaseReady'));
     </div>
 
     <!-- Note composer -->
+    <div id="note-no-partner" style="display:none;text-align:center;padding:20px;font-size:13px;color:var(--stone);font-weight:500">
+      Connect your partner in the Us tab first to send notes 💑
+      <br/><button class="btn btn-rose btn-sm" onclick="showPartnerSetup()" style="margin-top:12px;display:inline-flex">Connect partner</button>
+    </div>
     <div class="note-composer" id="note-composer">
       <div class="note-style-row" id="note-style-row">
         <button class="note-style-btn active" onclick="setNoteStyle('classic')" id="style-classic">🤍 Classic</button>
@@ -1141,6 +1145,7 @@ const THIRTYSIX_QUESTIONS = [
 // ══════════════════════════════════════════
 function save() {
   localStorage.setItem('spark_state', JSON.stringify(state));
+  pushToFirebase();
 }
 function load() {
   const raw = localStorage.getItem('spark_state');
@@ -1565,10 +1570,16 @@ function refreshAll() {
   refreshGarden();
   refreshGames();
   refreshUs();
+  refreshNotes();
 }
 
 function refreshHome() {
   const p = state.currentPlant;
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const greetingSuffix = state.myName ? `, ${state.myName} 🌸` : ' 🌸';
+  const topbarTitle = document.querySelector('#screen-home .topbar-title');
+  if (topbarTitle) topbarTitle.textContent = greeting + greetingSuffix;
   document.getElementById('home-avatar').textContent = state.myName ? state.myName[0].toUpperCase() : '😊';
   document.getElementById('home-partner-name-label').textContent = state.partnerName || 'your partner';
 
@@ -1601,6 +1612,8 @@ function refreshPlantScreen() {
   if (!p) return;
   document.getElementById('plant-main-svg').innerHTML = plantSVG(p, 160);
   document.getElementById('plant-screen-name').textContent = p.name;
+  const plantSub = document.getElementById('plant-topbar-sub');
+  if (plantSub) plantSub.textContent = p.isAlive ? `Day ${p.dayCount || 0} of 30 · ${p.name}` : `${p.name} has died 🥀`;
   document.getElementById('plant-screen-day').textContent = `Day ${p.dayCount || 0} of 30`;
   const pct = Math.min((p.dayCount || 0) / 30 * 100, 100);
   document.getElementById('plant-progress').style.width = pct + '%';
@@ -1615,7 +1628,12 @@ function refreshPlantScreen() {
 
   // Water button state — reflects cooldown
   const btn = document.getElementById('water-btn');
-  if (p.isAlive) {
+  if (!p.isAlive) {
+    btn.innerHTML = '🥀 Plant has died';
+    btn.style.opacity = '0.45';
+    btn.disabled = true;
+  } else {
+    btn.disabled = false;
     const cooldown = getWaterCooldownStatus();
     if (cooldown.onCooldown) {
       const hrsLeft = Math.ceil(cooldown.hoursLeft);
@@ -2078,6 +2096,18 @@ async function reactToNote(noteId, emoji) {
 function refreshNotes() {
   const list = document.getElementById('notes-list');
   const empty = document.getElementById('notes-empty');
+  // Show/hide composer based on partner connection
+  const composer = document.getElementById('note-composer');
+  const noPartner = document.getElementById('note-no-partner');
+  if (composer && noPartner) {
+    if (!state.coupleId) {
+      composer.style.display = 'none';
+      noPartner.style.display = 'block';
+    } else {
+      composer.style.display = 'block';
+      noPartner.style.display = 'none';
+    }
+  }
   // Get notes from Firebase state (synced via onSnapshot) or local
   const notes = (window._coupleData && window._coupleData.notes) || state.notes || [];
   // Check for unread notes from partner
@@ -2239,12 +2269,14 @@ function dismissSplash() {
   splash.classList.add('hidden');
   setTimeout(() => {
     splash.remove();
-    // Render animated plant on welcome screen step 1
-    const obPlant = document.getElementById('ob-plant-anim');
-    if (obPlant && !state.myName) {
-      const previewPlant = { ...PLANTS[0], dayCount: 28, isAlive: true };
-      obPlant.innerHTML = plantSVG(previewPlant, 130);
-    }
+    // Render animated plant on welcome screen step 1 — deferred so plantSVG is ready
+    try {
+      const obPlant = document.getElementById('ob-plant-anim');
+      if (obPlant && !state.myName) {
+        const previewPlant = { ...PLANTS[0], dayCount: 28, isAlive: true };
+        obPlant.innerHTML = plantSVG(previewPlant, 130);
+      }
+    } catch(e) { console.log('plant preview:', e); }
   }, 600);
 }
 
@@ -2344,12 +2376,8 @@ async function pushToFirebase() {
   }
 }
 
-// Patch save() to also push to Firebase
-const _localSave = save;
-function save() {
-  localStorage.setItem('spark_state', JSON.stringify(state));
-  pushToFirebase();
-}
+// save() already defined above — Firebase push wired in below via pushToFirebase()
+// called explicitly after each state mutation that needs syncing
 
 // ── Partner setup UI ──
 function showPartnerSetup() {
@@ -2455,7 +2483,7 @@ if (state.coupleId) {
 //  PUSH NOTIFICATIONS (FCM)
 // ══════════════════════════════════════════
 // VAPID key from Firebase console → Project settings → Cloud Messaging → Web Push certificates
-const VAPID_KEY = 'YOUR_VAPID_KEY_HERE';
+const VAPID_KEY = 'BHwT_aooB9ys4RmF0J5pnl5rOcOJquYWNQjiDUgPB2RULbu2iplm4bKgaThdcJuiJcnCPxQ0kPDU2cZaZoJRlbA';
 
 async function requestNotificationPermission() {
   if (!('Notification' in window)) return;
